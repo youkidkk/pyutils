@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Dict, List
 
 
@@ -15,9 +16,14 @@ def walk(parent_dir: str) -> Dict[str, List[str]]:
     }
 
 
-def walk_files(parent_dir: str, relative=True) -> List[str]:
+def walk_files(parent_dir: str, relative=False) -> List[str]:
+    def rel(path):
+        if not relative:
+            return path
+        return str(Path(path).relative_to(Path(parent_dir)))
+
     return [
-        _normalize_path(os.path.join(current_dir, file))
+        _normalize_path(rel(os.path.join(current_dir, file)))
         for current_dir, _, files in os.walk(parent_dir)
         if files
         for file in files
