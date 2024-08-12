@@ -13,3 +13,12 @@ def walk(parent_dir: str) -> Dict[str, List[str]]:
         for current_dir, _, files in os.walk(parent_dir)
         if files
     }
+
+
+def walk_files(parent_dir: str, relative=True) -> List[str]:
+    return [
+        _normalize_path(os.path.join(current_dir, file))
+        for current_dir, _, files in os.walk(parent_dir)
+        if files
+        for file in files
+    ]
