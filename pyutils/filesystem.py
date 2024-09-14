@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -30,6 +31,41 @@ def walk_files(parent_dir: Union[Path, str], relative=False) -> List[Path]:
         if files
         for file in files
     ]
+
+
+def parent_dirs(
+    target_dir: Union[Path, str],
+    root_dir: Union[Path, str],
+) -> Union[List[Path]]:
+    target_absolute = Path(target_dir).resolve()
+    root_absolute = Path(root_dir).resolve()
+    try:
+        dirs = [Path(d) for d in target_absolute.relative_to(root_absolute).parts]
+        current = Path("")
+        return sorted(
+            [(current := current.joinpath(d)) for d in dirs],  # noqa: F841
+            reverse=True,
+        )
+    except ValueError:
+        return []
+
+
+def remove_empty_parents(
+    target_dir: Union[Path, str],
+    root_dir: Union[Path, str],
+) -> List[Path]:
+    target = Path(target_dir)
+    if target.is_file():
+        return []
+    root = Path(root_dir)
+    deleted: List[Path] = []
+    for current in parent_dirs(target, root):
+        current_path = root.joinpath(current)
+        if list(current_path.iterdir()):
+            return deleted
+        shutil.rmtree(current_path)
+        deleted.append(current_path)
+    return deleted
 
 
 if __name__ == "__main__":
