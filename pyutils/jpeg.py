@@ -17,7 +17,7 @@ tag_id_dtorg = _get_exif_tagid("DateTimeOriginal")
 tag_id_subsec = _get_exif_tagid("SubsecTimeOriginal")
 
 
-def get_shoot_dt(path: str) -> Optional[datetime]:
+def shoot_datetime(path: str) -> Optional[datetime]:
     try:
         img = Image.open(path)
         exif = img.getexif()
@@ -30,7 +30,7 @@ def get_shoot_dt(path: str) -> Optional[datetime]:
 
 
 def compress(src_path: Path, dst_dir: Path) -> Path:
-    shoot_dt = get_shoot_dt(str(src_path))
+    shoot_dt = shoot_datetime(str(src_path))
     with Image.open(src_path) as img:
         exif = img.info.get("exif")
         dst_path = dst_dir.joinpath(src_path.name)
