@@ -6,7 +6,7 @@ from typing import Optional
 import win32_setctime
 from PIL import ExifTags, Image, UnidentifiedImageError
 
-quality = int(os.environ.get("QUALITY_JPG") or "50")
+quality_default = int(os.environ.get("QUALITY_JPG") or "50")
 
 
 def _get_exif_tagid(name: str) -> int:
@@ -29,7 +29,7 @@ def shoot_datetime(path: str) -> Optional[datetime]:
         return None
 
 
-def compress(src_path: Path, dst_dir: Path) -> Path:
+def compress(src_path: Path, dst_dir: Path, quality=quality_default) -> Path:
     shoot_dt = shoot_datetime(str(src_path))
     with Image.open(src_path) as img:
         exif = img.info.get("exif")
