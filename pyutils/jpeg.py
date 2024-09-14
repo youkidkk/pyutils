@@ -18,6 +18,7 @@ tag_id_subsec = _get_exif_tagid("SubsecTimeOriginal")
 
 
 def shoot_datetime(path: str) -> Optional[datetime]:
+    """撮影日時を取得"""
     try:
         img = Image.open(path)
         exif = img.getexif()
@@ -30,6 +31,7 @@ def shoot_datetime(path: str) -> Optional[datetime]:
 
 
 def compress(src_path: Path, dst_dir: Path, quality=quality_default) -> Path:
+    """画像ファイルを指定した圧縮率で圧縮"""
     shoot_dt = shoot_datetime(str(src_path))
     with Image.open(src_path) as img:
         exif = img.info.get("exif")
