@@ -30,6 +30,8 @@ class Console:
     def unindent(self, level: int = 1):
         """インデントを削除"""
         self.indent_level -= level
+        if self.indent_level < 0:
+            self.indent_level = 0
 
     def init_indent(self):
         """インデントを初期化"""
