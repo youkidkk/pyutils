@@ -4,6 +4,10 @@
     "editor.rulers": [88],
     "editor.tabSize": 4
   },
+  "files.exclude": {
+    "**/.mypy_cache": true,
+    "**/.venv": true
+  },
   "flake8.args": ["--max-line-length=88", "--ignore=E203,W503"],
   "mypy-type-checker.args": ["--ignore-missing-imports"],
   "mypy-type-checker.path": ["${workspaceFolder}/.venv/Lib/site-packages"],
