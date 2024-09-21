@@ -1,7 +1,8 @@
 import os
 import shutil
+from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List
 
 
 def _normalize_path(path: str) -> Path:
@@ -9,14 +10,40 @@ def _normalize_path(path: str) -> Path:
     return Path(path.replace("/", sep).replace("\\", sep))
 
 
+class WalkResultType(Enum):
+    Absolute = auto()
+    FileNameOnly = auto()
+    Relative = auto()
+
+
 def walk(
     target_dir: Path | str,
-    empty_dir=False,
+    result_type: WalkResultType = WalkResultType.FileNameOnly,
+    empty_dir: bool = False,
 ) -> Dict[Path, List[Path]]:
-    """ディレクトリ配下のファイルが存在するディレクトリとその配下のファイルの Dict を取得"""
+    """ディレクトリ配下のディレクトリとその配下のファイルの Dict を取得"""
     target = Path(target_dir)
+    if not target.exists() or target.is_file():
+        raise ValueError(f"{target}: Not exist or Not directory")
+
+    def conv_dir(dir: str) -> Path:
+        normalized = _normalize_path(dir)
+        return (
+            normalized
+            if result_type != WalkResultType.Absolute
+            else normalized.absolute()
+        )
+
+    def conv_file(filename: str, parent: str) -> Path:
+        parent = _normalize_path(parent)
+        return {
+            WalkResultType.Absolute: parent.joinpath(filename).absolute(),
+            WalkResultType.FileNameOnly: filename,
+            WalkResultType.Relative: parent.joinpath(filename).relative_to(target),
+        }[result_type]
+
     return {
-        _normalize_path(current_dir): [Path(f) for f in files]
+        conv_dir(current_dir): [conv_file(file, current_dir) for file in files]
         for current_dir, _, files in os.walk(target)
         if files or empty_dir
     }
@@ -27,7 +54,7 @@ def walk_files(
     absolute: bool = False,
 ) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
-    target = Path(target_dir)
+    target = _normalize_path(Path(target_dir))
     if not target.exists() or target.is_file():
         raise ValueError(f"{target}: Not exist or Not directory")
 
