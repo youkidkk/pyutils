@@ -218,3 +218,20 @@ def test_parent_dirs():
         Path.cwd().joinpath("test1/test2"),
         Path.cwd().joinpath("test1"),
     ]
+
+
+class TestRemoveEmptyParents:
+    @pytest.fixture
+    def init(self):
+        with TemporaryDirectory(dir=".") as temp:
+            self.root = Path(temp)
+            self.target = self.root.joinpath("test1", "test2", "test3")
+            self.target.mkdir(parents=True)
+            self.root.joinpath("test1", "file").touch()
+            yield
+        pass
+
+    def test(self, init):
+        fs.remove_empty_parents(self.target, self.root)
+        assert self.root.joinpath("test1").exists()
+        assert not self.root.joinpath("test1", "test2").exists()
