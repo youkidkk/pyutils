@@ -6,18 +6,19 @@ import pytest
 from pyutils import filesystem as fs
 
 
-def test__normalize_path():
-    func = fs._normalize_path
+class TestNormalizePath:
+    @pytest.fixture(
+        params=[
+            "test1/test2/test3",
+            "test1\\test2/test3",
+            "test1/test2\\test3",
+        ]
+    )
+    def pattern(self, request):
+        return fs._normalize_path(request.param)
 
-    patterns = [
-        "test1/test2/test3",
-        "test1\\test2/test3",
-        "test1/test2\\test3",
-    ]
-    correct_result = Path("test1/test2/test3")
-
-    for pattern in patterns:
-        assert func(pattern) == correct_result
+    def test__normalize_path(self, pattern):
+        assert pattern == Path("test1/test2/test3")
 
 
 class TestWalk:
