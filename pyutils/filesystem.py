@@ -54,7 +54,7 @@ def walk_files(
     absolute: bool = False,
 ) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
-    target = _normalize_path(Path(target_dir))
+    target = _normalize_path(str(target_dir))
     if not target.exists() or target.is_file():
         raise ValueError(f"{target}: Not exist or Not directory")
 
