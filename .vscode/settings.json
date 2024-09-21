@@ -5,9 +5,9 @@
     "editor.tabSize": 4
   },
   "files.exclude": {
+    "**/__pycache__": true,
     "**/.mypy_cache": true,
-    "**/.venv": true,
-    "**/__pycache__": true
+    "**/.venv": true
   },
   "flake8.args": ["--max-line-length=88", "--ignore=E203,W503"],
   "mypy-type-checker.args": ["--ignore-missing-imports"],
@@ -18,5 +18,8 @@
     "{$workspaceFolder}/.venv/Lib/site-packages"
   ],
   "python.languageServer": "Pylance",
-  "python.terminal.activateEnvInCurrentTerminal": true
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false
 }
