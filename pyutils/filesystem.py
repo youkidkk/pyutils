@@ -38,7 +38,7 @@ def walk(
         parent = _normalize_path(parent)
         return {
             WalkResultType.Absolute: parent.joinpath(filename).absolute(),
-            WalkResultType.FileNameOnly: filename,
+            WalkResultType.FileNameOnly: Path(filename),
             WalkResultType.Relative: parent.joinpath(filename).relative_to(target),
         }[result_type]
 
