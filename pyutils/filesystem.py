@@ -68,6 +68,7 @@ def walk_files(
 def parent_dirs(
     target_dir: Path | str,
     root_dir: Path | str,
+    absolute: bool = False,
 ) -> List[Path]:
     """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
 
@@ -76,10 +77,13 @@ def parent_dirs(
     try:
         dirs = [Path(d) for d in target_absolute.relative_to(root_absolute).parts]
         current = Path("")
-        return sorted(
+        result = sorted(
             [(current := current.joinpath(d)) for d in dirs],  # noqa: F841
             reverse=True,
         )
+        if absolute:
+            result = [r.absolute() for r in result]
+        return result
     except ValueError:
         return []
 
