@@ -10,7 +10,7 @@ def _normalize_path(path: str) -> Path:
 
 
 def walk(
-    target_dir: Union[Path, str],
+    target_dir: Path | str,
     empty_dir=False,
 ) -> Dict[Path, List[Path]]:
     """ディレクトリ配下のファイルが存在するディレクトリとその配下のファイルの Dict を取得"""
@@ -22,7 +22,7 @@ def walk(
     }
 
 
-def walk_files(parent_dir: Union[Path, str], relative=False) -> List[Path]:
+def walk_files(parent_dir: Path | str, relative=False) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
 
     def rel(path):
@@ -40,8 +40,8 @@ def walk_files(parent_dir: Union[Path, str], relative=False) -> List[Path]:
 
 
 def parent_dirs(
-    target_dir: Union[Path, str],
-    root_dir: Union[Path, str],
+    target_dir: Path | str,
+    root_dir: Path | str,
 ) -> Union[List[Path]]:
     """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
 
@@ -59,8 +59,8 @@ def parent_dirs(
 
 
 def remove_empty_parents(
-    target_dir: Union[Path, str],
-    root_dir: Union[Path, str],
+    target_dir: Path | str,
+    root_dir: Path | str,
 ) -> List[Path]:
     """対象ディレクトリからルートディレクトリまでの空のディレクトリを削除"""
     target = Path(target_dir)
