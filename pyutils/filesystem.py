@@ -39,7 +39,7 @@ def walk(
         return {
             WalkResultType.Absolute: parent.joinpath(filename).absolute(),
             WalkResultType.FileNameOnly: Path(filename),
-            WalkResultType.Relative: parent.joinpath(filename).relative_to(target),
+            WalkResultType.Relative: parent.joinpath(filename),
         }[result_type]
 
     return {
