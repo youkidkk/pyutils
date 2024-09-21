@@ -50,7 +50,7 @@ def _create_test_files(temp: Path):
 
 class TestWalk:
     @pytest.fixture
-    def init_test_walk(self):
+    def init(self):
         with TemporaryDirectory(dir=".") as temp:
             # temp:
             self.temp = Path(temp)
@@ -76,13 +76,13 @@ class TestWalk:
             yield
         pass
 
-    def test_default(self, init_test_walk):
+    def test_default(self, init):
         # デフォルト
         # result_type: WalkResultType.FileNameOnly
         # empty_dir: False
         assert fs.walk(self.temp) == self.default_result
 
-    def test_absolute(self, init_test_walk):
+    def test_absolute(self, init):
         # result_type: WalkResultType.Absolute
         assert fs.walk(
             self.temp,
@@ -92,7 +92,7 @@ class TestWalk:
             for dir, files in self.default_result.items()
         }
 
-    def test_filenameonly(self, init_test_walk):
+    def test_filenameonly(self, init):
         # result_type: WalkResultType.FileNameOnly
         assert (
             fs.walk(
@@ -102,7 +102,7 @@ class TestWalk:
             == self.default_result
         )
 
-    def test_relative(self, init_test_walk):
+    def test_relative(self, init):
         # result_type: WalkResultType.Relative
         assert fs.walk(
             self.temp,
@@ -112,7 +112,7 @@ class TestWalk:
             for dir, files in self.default_result.items()
         }
 
-    def test_emptydir_true(self, init_test_walk):
+    def test_emptydir_true(self, init):
         # result_type: WalkResultType.FileNameOnly ※デフォルト
         # empty_dir: True
         assert fs.walk(
@@ -123,7 +123,7 @@ class TestWalk:
             self.temp.joinpath("dir3"): [],
         }
 
-    def test_absolute_emptydir_true(self, init_test_walk):
+    def test_absolute_emptydir_true(self, init):
         # result_type: WalkResultType.Absolute
         # empty_dir: True
         assert fs.walk(
@@ -138,7 +138,7 @@ class TestWalk:
             self.temp.joinpath("dir3").absolute(): [],
         }
 
-    def test_filenameonly_emptydir_true(self, init_test_walk):
+    def test_filenameonly_emptydir_true(self, init):
         # result_type: WalkResultType.FileNameOnly
         # empty_dir: True
         assert fs.walk(
@@ -150,7 +150,7 @@ class TestWalk:
             self.temp.joinpath("dir3"): [],
         }
 
-    def test_relative_emptydir_true(self, init_test_walk):
+    def test_relative_emptydir_true(self, init):
         # result_type: WalkResultType.Relative
         # empty_dir: True
         assert fs.walk(
@@ -168,7 +168,7 @@ class TestWalk:
 
 class TestWalkFils:
     @pytest.fixture
-    def init_test_walk(self):
+    def init(self):
         with TemporaryDirectory(dir=".") as temp:
             # temp:
             self.temp = Path(temp)
@@ -186,18 +186,18 @@ class TestWalkFils:
             yield
         pass
 
-    def test_default(self, init_test_walk):
+    def test_default(self, init):
         result = fs.walk_files(self.temp)
         rrr = self.default_result
         assert result == rrr
 
-    def test_absolute_true(self, init_test_walk):
+    def test_absolute_true(self, init):
         assert fs.walk_files(
             self.temp,
             absolute=True,
         ) == [p.absolute() for p in self.default_result]
 
-    def test_absolute_false(self, init_test_walk):
+    def test_absolute_false(self, init):
         assert (
             fs.walk_files(
                 self.temp,
