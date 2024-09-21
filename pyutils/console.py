@@ -13,31 +13,39 @@ class Console:
     def _filled_text(self, text):
         """インデント、末尾のスペースを付与したテキスト"""
         indent = " " * self._indent_level * self._indent_width
-        return f"{indent}{text}".ljust(texts.width(self._last_text))
+        text = f"{indent}{text}"
+        if (sp_width := texts.width(self._last_text) - texts.width(text)) > 0:
+            text = text + (" " * sp_width)
+        return text
 
-    def log(self, text: str, newline: bool = False) -> None:
+    def log(self, text: str, newline: bool = False) -> str:
         """カレント行にログを出力"""
-        text = self._filled_text(text)
+        filled_text = self._filled_text(text)
+        end = "\n" if newline else "\r"
         print(
-            text,
-            end="\n" if newline else "\r",
+            filled_text,
+            end=end,
         )
-        self._last_text = text if not newline else ""
+        self._last_text = filled_text.rstrip() if not newline else ""
+        return filled_text + end
 
-    def log_ln(self, text: str = "") -> None:
+    def log_ln(self, text: str = "") -> str:
         """カレント行にログを出力した後に改行"""
-        self.log(text, newline=True)
+        return self.log(text, newline=True)
 
-    def indent(self, level: int = 1):
+    def indent(self, level: int = 1) -> int:
         """インデントを追加"""
         self._indent_level += level
+        return self._indent_level
 
-    def unindent(self, level: int = 1):
+    def unindent(self, level: int = 1) -> int:
         """インデントを削除"""
         self._indent_level -= level
         if self._indent_level < 0:
             self._indent_level = 0
+        return self._indent_level
 
-    def init_indent(self):
+    def init_indent(self) -> int:
         """インデントを初期化"""
         self._indent_level = 0
+        return self._indent_level
