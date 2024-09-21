@@ -83,9 +83,4 @@ def remove_empty_parents(
 
 
 if __name__ == "__main__":
-    # pass
-    result = walk("tmp", empty_dir=True)
-    for d, fs in result.items():
-        print(str(d))
-        for f in fs:
-            print(f"  {str(f)}")
+    pass
