@@ -99,14 +99,63 @@ class TestWalk:
 
     def test_walk_relative(self, init_test_walk):
         # result_type: WalkResultType.Relative
-        assert fs.walk(self.temp, fs.WalkResultType.Relative) == {
+        assert fs.walk(
+            self.temp,
+            fs.WalkResultType.Relative,
+        ) == {
             dir: [dir.joinpath(file) for file in files]
             for dir, files in self.default_result.items()
         }
 
     def test_walk_emptydir_true(self, init_test_walk):
-        # empty_dir: False
-        assert fs.walk(self.temp, empty_dir=True) == {
+        # result_type: WalkResultType.FileNameOnly ※デフォルト
+        # empty_dir: True
+        assert fs.walk(
+            self.temp,
+            empty_dir=True,
+        ) == {
             **self.default_result,
+            self.temp.joinpath("dir3"): [],
+        }
+
+    def test_walk_absolute_emptydir_true(self, init_test_walk):
+        # result_type: WalkResultType.Absolute
+        # empty_dir: True
+        assert fs.walk(
+            self.temp,
+            fs.WalkResultType.Absolute,
+            True,
+        ) == {
+            **{
+                dir.absolute(): [dir.joinpath(file).absolute() for file in files]
+                for dir, files in self.default_result.items()
+            },
+            self.temp.joinpath("dir3").absolute(): [],
+        }
+
+    def test_walk_filenameonly_emptydir_true(self, init_test_walk):
+        # result_type: WalkResultType.FileNameOnly
+        # empty_dir: True
+        assert fs.walk(
+            self.temp,
+            fs.WalkResultType.FileNameOnly,
+            True,
+        ) == {
+            **self.default_result,
+            self.temp.joinpath("dir3"): [],
+        }
+
+    def test_walk_relative_emptydir_true(self, init_test_walk):
+        # result_type: WalkResultType.Relative
+        # empty_dir: True
+        assert fs.walk(
+            self.temp,
+            fs.WalkResultType.Relative,
+            True,
+        ) == {
+            **{
+                dir: [dir.joinpath(file) for file in files]
+                for dir, files in self.default_result.items()
+            },
             self.temp.joinpath("dir3"): [],
         }
