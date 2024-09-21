@@ -205,3 +205,16 @@ class TestWalkFils:
             )
             == self.default_result
         )
+
+
+def test_parent_dirs():
+    assert fs.parent_dirs("root/test1/test2/test3", "root") == [
+        Path("test1/test2/test3"),
+        Path("test1/test2"),
+        Path("test1"),
+    ]
+    assert fs.parent_dirs("root/test1/test2/test3", "root", True) == [
+        Path.cwd().joinpath("test1/test2/test3"),
+        Path.cwd().joinpath("test1/test2"),
+        Path.cwd().joinpath("test1"),
+    ]
