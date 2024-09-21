@@ -22,15 +22,20 @@ def walk(
     }
 
 
-def walk_files(parent_dir: Path | str, relative=False) -> List[Path]:
+def walk_files(
+    parent_dir: Path | str,
+    relative=False,
+) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
+    target = Path(parent_dir)
+    if not target.exists() or target.is_file():
+        raise ValueError(f"{target}: Not exist or Not directory")
 
     def rel(path):
         if not relative:
             return path
         return Path(path).relative_to(Path(parent_dir))
 
-    target = Path(parent_dir)
     return [
         Path(_normalize_path(rel(os.path.join(current_dir, file))))
         for current_dir, _, files in os.walk(target)
@@ -78,4 +83,9 @@ def remove_empty_parents(
 
 
 if __name__ == "__main__":
-    pass
+    # pass
+    result = walk("tmp", empty_dir=True)
+    for d, fs in result.items():
+        print(str(d))
+        for f in fs:
+            print(f"  {str(f)}")
