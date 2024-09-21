@@ -41,7 +41,7 @@ def walk_files(
 def parent_dirs(
     target_dir: Path | str,
     root_dir: Path | str,
-) -> Union[List[Path]]:
+) -> List[Path]:
     """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
 
     target_absolute = Path(target_dir).resolve()
