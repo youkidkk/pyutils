@@ -4,16 +4,16 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 
-def _normalize_path(path):
+def _normalize_path(path: str) -> Path:
     sep = os.path.sep
-    return path.replace("/", sep).replace("\\", sep)
+    return Path(path.replace("/", sep).replace("\\", sep))
 
 
 def walk(target_dir: Union[Path, str]) -> Dict[Path, List[Path]]:
     """ディレクトリ配下のファイルが存在するディレクトリとその配下のファイルの Dict を取得"""
     target = Path(target_dir)
     return {
-        Path(_normalize_path(current_dir)): [Path(f) for f in files]
+        _normalize_path(current_dir): [Path(f) for f in files]
         for current_dir, _, files in os.walk(target)
         if files
     }
