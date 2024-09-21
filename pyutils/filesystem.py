@@ -23,25 +23,19 @@ def walk(
 
 
 def walk_files(
-    parent_dir: Path | str,
-    relative=False,
+    target_dir: Path | str,
+    absolute: bool = False,
 ) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
-    target = Path(parent_dir)
+    target = Path(target_dir)
     if not target.exists() or target.is_file():
         raise ValueError(f"{target}: Not exist or Not directory")
 
-    def rel(path):
-        if not relative:
-            return path
-        return Path(path).relative_to(Path(parent_dir))
+    def conv_absolute(path: Path):
+        return path.absolute() if absolute else path
 
-    return [
-        Path(_normalize_path(rel(os.path.join(current_dir, file))))
-        for current_dir, _, files in os.walk(target)
-        if files
-        for file in files
-    ]
+    path_objs = target.glob("**/*")
+    return [conv_absolute(obj) for obj in path_objs if obj.is_file()]
 
 
 def parent_dirs(
