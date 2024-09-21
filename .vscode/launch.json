@@ -7,13 +7,19 @@
       "request": "launch",
       "program": "${workspaceFolderBasename}",
       "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "."
+      }
     },
     {
       "name": "Python デバッガー: 現在のファイル",
       "type": "debugpy",
       "request": "launch",
       "program": "${file}",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "."
+      }
     }
   ]
 }
