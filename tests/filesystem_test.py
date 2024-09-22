@@ -174,14 +174,14 @@ class TestWalkFils:
             self.temp = Path(temp)
             _create_test_files(self.temp)
             self.default_result = [
+                self.temp.joinpath("dir1", "dir11", "dir11_test1"),
+                self.temp.joinpath("dir1", "dir11", "dir11_test2"),
+                self.temp.joinpath("dir1", "dir1_test1"),
+                self.temp.joinpath("dir1", "dir1_test2"),
+                self.temp.joinpath("dir2", "dir2_test1"),
                 self.temp.joinpath("test1"),
                 self.temp.joinpath("test2"),
                 self.temp.joinpath("test3"),
-                self.temp.joinpath("dir1", "dir1_test1"),
-                self.temp.joinpath("dir1", "dir1_test2"),
-                self.temp.joinpath("dir1", "dir11", "dir11_test1"),
-                self.temp.joinpath("dir1", "dir11", "dir11_test2"),
-                self.temp.joinpath("dir2", "dir2_test1"),
             ]
             yield
         pass

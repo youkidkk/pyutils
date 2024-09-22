@@ -62,7 +62,7 @@ def walk_files(
         return path.absolute() if absolute else path
 
     path_objs = target.glob("**/*")
-    return [conv_absolute(obj) for obj in path_objs if obj.is_file()]
+    return sorted([conv_absolute(obj) for obj in path_objs if obj.is_file()])
 
 
 def parent_dirs(
