@@ -1,3 +1,4 @@
+from pyutils import classes
 from pyutils.console import Console
 
 
@@ -21,3 +22,9 @@ def test_console():
     assert console.print("あいう12") == "  あいう12     "
     console.init_indent()
     assert console._indent_level == 0
+
+
+def test_console_parameters():
+    classes._instances = {}
+    console = Console(indent_width=3, top_level=2, init_indent_level=1)
+    assert console.print("test") == "         test"
