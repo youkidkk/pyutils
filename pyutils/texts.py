@@ -11,3 +11,7 @@ def width(text: str) -> int:
 def truthy(target: str) -> bool:
     target = target.lower()
     return True if target in TRUTHY_VALUES else False
+
+
+def remove_ctrl_chars(target: str) -> str:
+    return "".join(ch for ch in target if unicodedata.category(ch)[0] != "C")

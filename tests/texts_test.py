@@ -28,3 +28,8 @@ class TestTruthy:
 
     def test(self, pattern):
         assert pattern
+
+
+def test_remove_ctrl_chars():
+    func = texts.remove_ctrl_chars
+    assert func("12\n3\r a\tb\bc") == "123 abc"
