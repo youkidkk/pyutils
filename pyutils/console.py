@@ -1,6 +1,7 @@
-from pyutils import texts
+from pyutils import classes, texts
 
 
+@classes.singleton
 class Console:
     def __init__(
         self,
@@ -24,6 +25,7 @@ class Console:
             text = text + (" " * sp_width)
         return text
 
+    @classes.synchronized
     def print(self, text: str) -> str:
         """カレント行にテキストを出力"""
         filled_text = self._filled_text(texts.remove_ctrl_chars(text))
