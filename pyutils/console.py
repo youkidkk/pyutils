@@ -18,28 +18,38 @@ class Console:
             text = text + (" " * sp_width)
         return text
 
-    def log(self, text: str, newline: bool = False) -> str:
-        """カレント行にログを出力"""
+    def print(self, text: str) -> str:
+        """カレント行にテキストを出力"""
         filled_text = self._filled_text(text)
-        end = "\n" if newline else "\r"
         print(
             filled_text,
-            end=end,
+            end="\r",
         )
-        self._last_text = filled_text.rstrip() if not newline else ""
-        return filled_text + end
+        self._last_text = filled_text.rstrip()
+        return filled_text
 
-    def log_ln(self, text: str = "") -> str:
-        """カレント行にログを出力した後に改行"""
-        return self.log(text, newline=True)
+    def line_break(self) -> str:
+        """改行する"""
+        print()
+        self._last_text = ""
+        return ""
+
+    def print_line(self, text: str = "") -> str:
+        """カレント行にテキストを出力後に改行"""
+        self.print(text)
+        return self.line_break()
 
     def indent(self, level: int = 1) -> int:
         """インデントを追加"""
+        if self._last_text:
+            self.line_break()
         self._indent_level += level
         return self._indent_level
 
     def unindent(self, level: int = 1) -> int:
         """インデントを削除"""
+        if self._last_text:
+            self.line_break()
         self._indent_level -= level
         if self._indent_level < 0:
             self._indent_level = 0
@@ -47,5 +57,7 @@ class Console:
 
     def init_indent(self) -> int:
         """インデントを初期化"""
+        if self._last_text:
+            self.line_break()
         self._indent_level = 0
         return self._indent_level
