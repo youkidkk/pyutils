@@ -5,15 +5,21 @@ class Console:
     def __init__(
         self,
         indent_width: int = 2,
+        top_level: int = 0,
+        init_indent_level: int = 0,
     ):
         self._indent_width: int = indent_width
-        self._indent_level: int = 0
+        self._top_level = top_level
+        self._indent_level: int = init_indent_level
         self._last_text: int = ""
 
-    def _filled_text(self, text):
+    def _indent_space(self) -> str:
+        """インデントレベルに応じたスペースを返却"""
+        return " " * (self._top_level + self._indent_level) * self._indent_width
+
+    def _filled_text(self, text) -> str:
         """インデント、末尾のスペースを付与したテキスト"""
-        indent = " " * self._indent_level * self._indent_width
-        text = f"{indent}{text}"
+        text = f"{self._indent_space()}{text}"
         if (sp_width := texts.width(self._last_text) - texts.width(text)) > 0:
             text = text + (" " * sp_width)
         return text
