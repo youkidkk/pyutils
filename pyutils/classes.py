@@ -1,15 +1,16 @@
 import threading
 from typing import Any, Callable, Type
 
+_instances = {}
+
 
 def singleton(cls: Type) -> Any:
     """シングルトンのデコレータ"""
-    instances = {}
 
     def getinstance(*args, **kwargs) -> Any:
-        if cls not in instances:
-            instances[cls] = cls(*args, **kwargs)
-        return instances[cls]
+        if cls not in _instances:
+            _instances[cls] = cls(*args, **kwargs)
+        return _instances[cls]
 
     return getinstance
 
