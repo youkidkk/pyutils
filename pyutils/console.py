@@ -26,7 +26,7 @@ class Console:
 
     def print(self, text: str) -> str:
         """カレント行にテキストを出力"""
-        filled_text = self._filled_text(text)
+        filled_text = self._filled_text(texts.remove_ctrl_chars(text))
         print(
             filled_text,
             end="\r",

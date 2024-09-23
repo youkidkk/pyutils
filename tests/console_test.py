@@ -3,7 +3,7 @@ from pyutils.console import Console
 
 def test_console():
     console = Console()
-    assert console.print("あいうえお123") == "あいうえお123"
+    assert console.print("あ\tい\rう\nえお123  ") == "あいうえお123  "
     assert console.print("あいう12") == "あいう12     "
     console.indent()
     assert console._last_text == ""
