@@ -26,12 +26,12 @@ class Console:
         return text
 
     @classes.synchronized
-    def print(self, text: str) -> str:
+    def print(self, text: str, end="\r") -> str:
         """カレント行にテキストを出力"""
         filled_text = self._filled_text(texts.remove_ctrl_chars(text))
         print(
             filled_text,
-            end="\r",
+            end=end,
         )
         self._last_text = filled_text.rstrip()
         return filled_text
@@ -69,3 +69,17 @@ class Console:
             self.line_break()
         self._indent_level = 0
         return self._indent_level
+
+    def wait_enter(self, text="Press Enter key"):
+        """Enterキーの入力待ち"""
+        self.print(f"{text}: ", end="")
+        input()
+
+    def confirm(self, text, default=False):
+        """Y or N の入力"""
+        self.print(f"{text} ({"Y/n" if default else "y/N"}): ", end="")
+        choice = input()
+        if default:
+            return choice.lower() != "n"
+        else:
+            return choice.lower() == "y"
