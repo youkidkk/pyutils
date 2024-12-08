@@ -70,12 +70,12 @@ class Console:
         self._indent_level = 0
         return self._indent_level
 
-    def wait_enter(self, text="Press Enter key"):
+    def wait_enter(self, text: str = "Press Enter key"):
         """Enterキーの入力待ち"""
         self.print(f"{text}: ", end="")
         input()
 
-    def confirm(self, text, default=False):
+    def confirm(self, text: str, default: bool = False):
         """Y or N の入力"""
         self.print(f"{text} ({"Y/n" if default else "y/N"}): ", end="")
         choice = input()
@@ -83,3 +83,12 @@ class Console:
             return choice.lower() != "n"
         else:
             return choice.lower() == "y"
+
+    def input_int(self, text: str):
+        while True:
+            self.print(f"{text}: ", end="")
+            intext = input()
+            try:
+                return int(intext)
+            except Exception:
+                pass
