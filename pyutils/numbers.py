@@ -3,14 +3,28 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Self
 
-DEFAULT_MIN_VALUE = int(os.environ.get("NUMBER_DEFAULT_MIN_VALUE") or "-999999999")
-DEFAULT_MAX_VALUE = int(os.environ.get("NUMBER_DEFAULT_MAX_VALUE") or "999999999")
+
+def is_integer(value: int | str) -> bool:
+    if type(value) is int:
+        return True
+    try:
+        float(value)
+    except ValueError:
+        return False
+    else:
+        return float(value).is_integer()
 
 
 class ExceedLimitBehavior(Enum):
     Raise = auto()
     LimitValue = auto()
     Expand = auto()
+
+
+_env_min_str = os.environ.get("NUMBER_DEFAULT_MIN_VALUE")
+DEFAULT_MIN_VALUE = int(_env_min_str) if is_integer(_env_min_str) else -999999999
+_env_max_str = os.environ.get("NUMBER_DEFAULT_MAX_VALUE")
+DEFAULT_MAX_VALUE = int(_env_max_str) if is_integer(_env_max_str) else 999999999
 
 
 @dataclass(frozen=True)
