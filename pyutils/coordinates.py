@@ -29,3 +29,10 @@ class Size:
 class Rectangle:
     start_point: Point
     size: Size
+
+    @property
+    def end_point(self):
+        return Point(
+            self.start_point.x + self.size.width,
+            self.start_point.y + self.size.height,
+        )

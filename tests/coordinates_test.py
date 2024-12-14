@@ -31,3 +31,4 @@ def test_rectangle():
     r2 = Rectangle(Point(1, 2), Size(3, 4))
 
     assert r1 == r2
+    assert r1.end_point == Point(4, 6)
