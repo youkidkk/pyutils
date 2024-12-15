@@ -4,7 +4,9 @@ from enum import Enum, auto
 from typing import Self
 
 
-def is_integer(value: int | str) -> bool:
+def is_integer(value: int | float | str | None) -> bool:
+    if value is None:
+        return False
     if type(value) is int:
         return True
     try:
