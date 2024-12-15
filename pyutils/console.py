@@ -26,11 +26,11 @@ class Console:
         return text
 
     @classes.synchronized
-    def print(self, text: str, end="\r") -> str:
+    def print(self, text: str, end="") -> str:
         """カレント行にテキストを出力"""
         filled_text = self._filled_text(texts.remove_ctrl_chars(text))
         print(
-            filled_text,
+            "\r" + filled_text,
             end=end,
         )
         self._last_text = filled_text.rstrip()
