@@ -21,17 +21,19 @@ class ExceedLimitBehavior(Enum):
     Expand = auto()
 
 
-_env_min_str = os.environ.get("NUMBER_DEFAULT_MIN_VALUE")
-DEFAULT_MIN_VALUE = int(_env_min_str) if is_integer(_env_min_str) else -999999999
-_env_max_str = os.environ.get("NUMBER_DEFAULT_MAX_VALUE")
-DEFAULT_MAX_VALUE = int(_env_max_str) if is_integer(_env_max_str) else 999999999
+_env_min_str = os.environ.get("INTEGER_DEFAULT_MIN_VALUE")
+INTEGER_DEFAULT_MIN_VALUE = (
+    int(_env_min_str) if is_integer(_env_min_str) else -999999999
+)
+_env_max_str = os.environ.get("INTEGER_DEFAULT_MAX_VALUE")
+INTEGER_DEFAULT_MAX_VALUE = int(_env_max_str) if is_integer(_env_max_str) else 999999999
 
 
 @dataclass(frozen=True)
-class Number:
+class Integer:
     value: int = 0
-    min_value: int = DEFAULT_MIN_VALUE
-    max_value: int = DEFAULT_MAX_VALUE
+    min_value: int = INTEGER_DEFAULT_MIN_VALUE
+    max_value: int = INTEGER_DEFAULT_MAX_VALUE
     exceed_limit_behavior: ExceedLimitBehavior = ExceedLimitBehavior.Raise
 
     def __post_init__(self):
@@ -78,44 +80,44 @@ class Number:
                 case ExceedLimitBehavior.Expand:
                     object.__setattr__(self, "max_value", self.value)
 
-    def __to_number(self, value: int | Self) -> Self:
-        if type(value) is Number:
+    def __to_integer(self, value: int | Self) -> Self:
+        if type(value) is Integer:
             return value
         elif type(value) is int:
-            return Number(value)
-        raise ValueError(f"Value should be Number or int: {type(value)}")
+            return Integer(value)
+        raise ValueError(f"Value should be Integer or int: {type(value)}")
 
     def __str__(self):
         return str(self.value)
 
     def __eq__(self, other: int | Self):
         # = 演算子
-        return self.value == self.__to_number(other).value
+        return self.value == self.__to_integer(other).value
 
     def __ne__(self, other: int | Self):
         # != 演算子
-        return self.value != self.__to_number(other).value
+        return self.value != self.__to_integer(other).value
 
     def __lt__(self, other: int | Self):
         # < 演算子
-        return self.value < self.__to_number(other).value
+        return self.value < self.__to_integer(other).value
 
     def __le__(self, other: int | Self):
         # <= 演算子
-        return self.value <= self.__to_number(other).value
+        return self.value <= self.__to_integer(other).value
 
     def __gt__(self, other: int | Self):
         # > 演算子
-        return self.value > self.__to_number(other).value
+        return self.value > self.__to_integer(other).value
 
     def __ge__(self, other: int | Self):
         # >= 演算子
-        return self.value >= self.__to_number(other).value
+        return self.value >= self.__to_integer(other).value
 
     def __add__(self, other: int | Self) -> Self:
         # + 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value + other.value,
             self.min_value,
             self.max_value,
@@ -124,8 +126,8 @@ class Number:
 
     def __sub__(self, other: int | Self) -> Self:
         # - 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value - other.value,
             self.min_value,
             self.max_value,
@@ -134,8 +136,8 @@ class Number:
 
     def __mul__(self, other: int | Self) -> Self:
         # * 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value * other.value,
             self.min_value,
             self.max_value,
@@ -144,13 +146,13 @@ class Number:
 
     def __truediv__(self, other: int | Self) -> float:
         # / 演算子 -> float型を返却
-        other = self.__to_number(other)
+        other = self.__to_integer(other)
         return self.value / other.value
 
     def __floordiv__(self, other: int | Self) -> Self:
         # // 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value // other.value,
             self.min_value,
             self.max_value,
@@ -159,8 +161,8 @@ class Number:
 
     def __mod__(self, other: int | Self) -> Self:
         # % 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value % other.value,
             self.min_value,
             self.max_value,
@@ -169,8 +171,8 @@ class Number:
 
     def __pow__(self, other: int | Self) -> Self:
         # ** 演算子
-        other = self.__to_number(other)
-        return Number(
+        other = self.__to_integer(other)
+        return Integer(
             self.value**other.value,
             self.min_value,
             self.max_value,
