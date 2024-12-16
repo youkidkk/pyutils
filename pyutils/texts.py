@@ -6,7 +6,7 @@ def width(text: str) -> int:
     return sum([2 if unicodedata.east_asian_width(c) in "FWA" else 1 for c in text])
 
 
-TRUTHY_VALUES = ["true", "yes", "on", "1"]
+TRUTHY_VALUES = ["true", "yes", "y", "on", "1"]
 
 
 def truthy(target: str) -> bool:
@@ -14,7 +14,7 @@ def truthy(target: str) -> bool:
     return True if target in TRUTHY_VALUES else False
 
 
-FALSY_VALUES = ["false", "no", "off", "0"]
+FALSY_VALUES = ["false", "no", "n", "off", "0"]
 
 
 def falsy(target: str) -> bool:
