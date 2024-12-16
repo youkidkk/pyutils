@@ -2,7 +2,7 @@ import os
 import shutil
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 
 def _normalize_path(path: str) -> Path:
@@ -20,6 +20,8 @@ def walk(
     target_dir: Path | str,
     result_type: WalkResultType = WalkResultType.FileNameOnly,
     empty_dir: bool = False,
+    dir_filter: Callable[[Path], bool] = lambda _: True,
+    file_filter: Callable[[Path], bool] = lambda _: True,
 ) -> Dict[Path, List[Path]]:
     """ディレクトリ配下のディレクトリとその配下のファイルの Dict を取得"""
     target = Path(target_dir)
@@ -43,15 +45,20 @@ def walk(
         }[result_type]
 
     return {
-        conv_dir(current_dir): [conv_file(file, current_dir) for file in files]
+        conv_dir(current_dir): [
+            conv_file(file, current_dir)
+            for file in files
+            if file_filter(Path(current_dir).joinpath(file))
+        ]
         for current_dir, _, files in os.walk(target)
-        if files or empty_dir
+        if (files or empty_dir) and dir_filter(Path(current_dir))
     }
 
 
 def walk_files(
     target_dir: Path | str,
     absolute: bool = False,
+    file_filter: Callable[[Path], bool] = lambda _: True,
 ) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
     target = _normalize_path(str(target_dir))
@@ -62,7 +69,9 @@ def walk_files(
         return path.absolute() if absolute else path
 
     path_objs = target.glob("**/*")
-    return sorted([conv_absolute(obj) for obj in path_objs if obj.is_file()])
+    return sorted(
+        [conv_absolute(obj) for obj in path_objs if obj.is_file() and file_filter(obj)]
+    )
 
 
 def parent_dirs(

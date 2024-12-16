@@ -165,6 +165,19 @@ class TestWalk:
             self.temp.joinpath("dir3"): [],
         }
 
+    def test_dir_filter(self, init):
+        assert fs.walk(self.temp, dir_filter=lambda d: d.name.startswith("dir1")) == {
+            dir: files
+            for dir, files in self.default_result.items()
+            if dir.name.startswith("dir1")
+        }
+
+    def test_file_filter(self, init):
+        assert fs.walk(self.temp, file_filter=lambda f: f.name.endswith("test2")) == {
+            dir: [f for f in files if f.name.endswith("test2")]
+            for dir, files in self.default_result.items()
+        }
+
 
 class TestWalkFils:
     @pytest.fixture
@@ -205,6 +218,11 @@ class TestWalkFils:
             )
             == self.default_result
         )
+
+    def test_file_filter(self, init):
+        assert fs.walk_files(
+            self.temp, file_filter=lambda f: f.name.endswith("_test2")
+        ) == [f for f in self.default_result if f.name.endswith("_test2")]
 
 
 def test_parent_dirs():
