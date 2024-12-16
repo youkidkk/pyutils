@@ -1,7 +1,5 @@
 import unicodedata
 
-FALSY_VALUES = ["false", "no", "off", "0"]
-
 
 def width(text: str) -> int:
     """文字列の幅（半角:1、全角:2）を取得"""
