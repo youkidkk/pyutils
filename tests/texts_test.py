@@ -18,13 +18,42 @@ class TestTruthy:
             ["ON", True],
             ["1", True],
             ["false", False],
+            ["FALSE", False],
             ["no", False],
+            ["NO", False],
             ["off", False],
+            ["OFF", False],
             ["0", False],
         ]
     )
     def pattern(self, request):
         return texts.truthy(request.param[0]) == request.param[1]
+
+    def test(self, pattern):
+        assert pattern
+
+
+class TestFalsy:
+    @pytest.fixture(
+        params=[
+            ["true", False],
+            ["TRUE", False],
+            ["yes", False],
+            ["YES", False],
+            ["on", False],
+            ["ON", False],
+            ["1", False],
+            ["false", True],
+            ["FALSE", True],
+            ["no", True],
+            ["NO", True],
+            ["off", True],
+            ["OFF", True],
+            ["0", True],
+        ]
+    )
+    def pattern(self, request):
+        return texts.falsy(request.param[0]) == request.param[1]
 
     def test(self, pattern):
         assert pattern
