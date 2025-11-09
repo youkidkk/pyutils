@@ -1,6 +1,5 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.rulers": [88],
     "editor.tabSize": 4
   },
