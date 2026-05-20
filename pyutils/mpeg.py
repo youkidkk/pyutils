@@ -1,0 +1,119 @@
+import dataclasses
+import json
+import re
+import subprocess
+from pathlib import Path
+from typing import Tuple, Union
+
+from hachoir.metadata import extractMetadata
+from hachoir.parser import createParser
+
+
+@dataclasses.dataclass
+class Size:
+    width: int
+    height: int
+
+
+def _size_from_ffmpeg(target_path: Path) -> Size | None:
+    command = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_format",
+        "-show_streams",
+        "-of",
+        "json",
+        str(target_path),
+    ]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+
+        # ビデオストリームの特定
+        video_stream = None
+        for stream in data.get("streams", []):
+            if stream.get("codec_type") == "video":
+                video_stream = stream
+                break
+
+        if not video_stream:
+            return None, None
+
+        width = int(video_stream.get("width", 0))
+        height = int(video_stream.get("height", 0))
+
+        # --- 回転情報の抽出（4段階で探索） ---
+        rotation = 0
+
+        # 1. side_data_list 内の直接の 'rotation' キーを探す
+        if "side_data_list" in video_stream:
+            for side_data in video_stream["side_data_list"]:
+                if "rotation" in side_data:
+                    rotation = int(side_data["rotation"])
+                    break
+                # 近年のFFmpeg対策: displaymatrix の文字列内に
+                # "rotation of -90.00 degrees" などが含まれる場合をパース
+                elif "displaymatrix" in side_data:
+                    dm_text = side_data["displaymatrix"]
+                    match = re.search(r"rotation of\s+(-?\d+)", dm_text)
+                    if match:
+                        rotation = int(match.group(1))
+                        break
+
+        # 2. ビデオストリームの tags.rotate を探す
+        if rotation == 0 and "tags" in video_stream:
+            if "rotate" in video_stream["tags"]:
+                rotation = int(video_stream["tags"]["rotate"])
+
+        # 3. ファイル全体の format.tags.rotate を探す (一部のコンテナ用)
+        if rotation == 0 and "format" in data and "tags" in data["format"]:
+            if "rotate" in data["format"]["tags"]:
+                rotation = int(data["format"]["tags"]["rotate"])
+
+        # 4. マイナス回転（-90度など）を正の数に揃える
+        rotation = rotation % 360
+
+        # --- 📐 実際のサイズ計算 ---
+        actual_width, actual_height = width, height
+        if rotation in [90, 270]:
+            actual_width, actual_height = height, width
+
+        return Size(actual_width, actual_height)
+    except Exception:
+        return
+
+
+def _size_from_hachoir(target_path: Path) -> Tuple[int, int] | None:
+    parser = createParser(str(target_path))
+    if not parser:
+        return None, None
+    try:
+        metadata = extractMetadata(parser)
+        if not metadata:
+            return None
+
+        # メタデータから幅と高さを取得
+        width = metadata.get("width") if metadata.has("width") else None
+        height = metadata.get("height") if metadata.has("height") else None
+
+        if not width or not height:
+            return
+        return Size(int(width), int(height))
+    except Exception:
+        return None
+    finally:
+        parser.close()
+
+
+def size(target_file: Union[Path, str]) -> Size | None:
+    """動画のサイズを取得"""
+    target_path = Path(target_file)
+
+    if result := _size_from_ffmpeg(target_path):
+        return result
+    if result := _size_from_hachoir(target_path):
+        return result
+
+    return
