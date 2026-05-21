@@ -1,10 +1,12 @@
 import dataclasses
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import win32_setctime
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 
@@ -184,6 +186,9 @@ def compress(
     scale = _output_scale(str(src_path))
     if not scale:
         return
+    shoot_dt = shoot_datetime(src_path)
+    if not shoot_dt:
+        return
 
     # FFmpegのコマンドを構築
     command = [
@@ -203,6 +208,8 @@ def compress(
         "aac",  # 音声を汎用性の高いAACに変換
         "-b:a",
         "128k",  # 音声ビットレートを128kbpsに抑える
+        "-metadata",
+        f"creation_time={shoot_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",  # 👈 撮影日時を設定
         str(dst_path),
     ]
 
@@ -215,6 +222,8 @@ def compress(
             stderr=subprocess.PIPE,
             encoding="utf-8",
         )
+        win32_setctime.setctime(dst_path, shoot_dt.timestamp())
+        os.utime(dst_path, (shoot_dt.timestamp(), shoot_dt.timestamp()))
         return dst_path
     except subprocess.CalledProcessError:
         return
