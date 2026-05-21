@@ -86,7 +86,7 @@ def _size_from_ffmpeg(target_path: Path) -> Size | None:
         return
 
 
-def _size_from_hachoir(target_path: Path) -> Tuple[int, int] | None:
+def _size_from_hachoir(target_path: Path) -> Size | None:
     parser = createParser(str(target_path))
     if not parser:
         return None, None
