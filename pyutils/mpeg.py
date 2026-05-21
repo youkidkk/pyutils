@@ -209,7 +209,11 @@ def compress(
     try:
         # コマンドを実行
         subprocess.run(
-            command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
         )
         return dst_path
     except subprocess.CalledProcessError:
