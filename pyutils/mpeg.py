@@ -4,7 +4,6 @@ import re
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Tuple
 
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
@@ -29,7 +28,13 @@ def _size_from_ffmpeg(target_path: Path) -> Size | None:
     ]
 
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
         data = json.loads(result.stdout)
 
         # ビデオストリームの特定
