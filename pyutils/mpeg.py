@@ -2,6 +2,7 @@ import dataclasses
 import json
 import re
 import subprocess
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Tuple, Union
 
@@ -117,6 +118,22 @@ def size(target_file: Union[Path, str]) -> Size | None:
         return result
 
     return
+
+
+def shoot_datetime(file: Path | str) -> datetime | None:
+    path = Path(file)
+    parser = createParser(str(path))
+    if not parser:
+        return
+    try:
+        if metadata := extractMetadata(parser):
+            if not metadata.has("creation_date"):
+                return
+        return metadata.get("creation_date") + timedelta(hours=9)
+    except Exception:
+        return
+    finally:
+        parser.close()
 
 
 def _output_scale(file: Path, scale=960) -> str:
