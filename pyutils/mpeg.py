@@ -161,7 +161,7 @@ def compress(
     dst_file: Path | str,
     scale: int = 960,
     crf: int = 28,
-    preset: str = "slower",
+    preset: str = "medium",
 ) -> Path | None:
     """
     MP4動画を圧縮する
