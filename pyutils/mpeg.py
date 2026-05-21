@@ -117,3 +117,78 @@ def size(target_file: Union[Path, str]) -> Size | None:
         return result
 
     return
+
+
+def _output_scale(file: Path, scale=960) -> str:
+    size_ = size(file)
+    if not size_:
+        return
+
+    if size_.width > size_.height:
+        # 横長
+        return f"scale={scale}:-2"
+    elif size_.width < size_.height:
+        # 縦長
+        return f"scale=-2:{scale}"
+    else:
+        return f"scale={scale}:{scale}"
+
+
+def compress(
+    src_file: Union[Path, str],
+    dst_file: Union[Path, str],
+    scale=960,
+    crf=28,
+    preset="slower",
+) -> Path:
+    """
+    MP4動画を圧縮する
+
+    :param src_file: 元ファイル
+    :param dst_file: 圧縮後の保存先ファイル
+    :param crf: 画質と圧縮率のバランス（0〜51）。数値が大きいほど高圧縮。
+                H.265の場合、28前後が「画質を維持しつつ激変する」ベストスポットです。
+    :param preset: 圧縮にかける時間。'slower' や 'veryslow' にするほど、
+                   時間はかかりますが圧縮率は最高になります。
+    """
+    src_path = Path(src_file)
+    dst_path = Path(dst_file)
+
+    if not src_path.exists():
+        return
+    if dst_path.exists():
+        return
+
+    scale = _output_scale(str(src_path))
+    if not scale:
+        return
+
+    # FFmpegのコマンドを構築
+    command = [
+        "ffmpeg",
+        "-y",  # 同名ファイルがあれば上書き
+        "-i",
+        str(src_path),  # 入力ファイル
+        "-c:v",
+        "libx265",  # ビデオコーデックに H.265 (HEVC) を指定
+        "-crf",
+        str(crf),  # 恒常画質モード（サイズと画質のバランス）
+        "-vf",
+        scale,
+        "-preset",
+        preset,  # エンコード速度（遅い＝圧縮効率UP）
+        "-c:a",
+        "aac",  # 音声を汎用性の高いAACに変換
+        "-b:a",
+        "128k",  # 音声ビットレートを128kbpsに抑える
+        str(dst_path),
+    ]
+
+    try:
+        # コマンドを実行
+        subprocess.run(
+            command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        return dst_path
+    except subprocess.CalledProcessError:
+        return
