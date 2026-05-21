@@ -4,7 +4,7 @@ import re
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Tuple
 
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
@@ -108,7 +108,7 @@ def _size_from_hachoir(target_path: Path) -> Tuple[int, int] | None:
         parser.close()
 
 
-def size(target_file: Union[Path, str]) -> Size | None:
+def size(target_file: Path | str) -> Size | None:
     """動画のサイズを取得"""
     target_path = Path(target_file)
 
@@ -136,7 +136,7 @@ def shoot_datetime(file: Path | str) -> datetime | None:
         parser.close()
 
 
-def _output_scale(file: Path, scale=960) -> str:
+def _output_scale(file: Path, scale=960) -> str | None:
     size_ = size(file)
     if not size_:
         return
@@ -152,12 +152,12 @@ def _output_scale(file: Path, scale=960) -> str:
 
 
 def compress(
-    src_file: Union[Path, str],
-    dst_file: Union[Path, str],
-    scale=960,
-    crf=28,
-    preset="slower",
-) -> Path:
+    src_file: Path | str,
+    dst_file: Path | str,
+    scale: int = 960,
+    crf: int = 28,
+    preset: str = "slower",
+) -> Path | None:
     """
     MP4動画を圧縮する
 
