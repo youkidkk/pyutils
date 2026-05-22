@@ -3,7 +3,7 @@ import json
 import os
 import re
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 
 import win32_setctime
@@ -136,7 +136,13 @@ def shoot_datetime(file: Path | str) -> datetime | None:
         if metadata := extractMetadata(parser):
             if not metadata.has("creation_date"):
                 return
-        return metadata.get("creation_date") + timedelta(hours=9)
+            meta_dt = metadata.get("creation_date")
+            if type(meta_dt) is datetime:
+                return (
+                    meta_dt.replace(tzinfo=timezone.utc)
+                    .astimezone()
+                    .replace(tzinfo=None)
+                )
     except Exception:
         return
     finally:
@@ -209,7 +215,7 @@ def compress(
         "-b:a",
         "128k",  # 音声ビットレートを128kbpsに抑える
         "-metadata",
-        f"creation_time={shoot_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}",  # 👈 撮影日時を設定
+        f"creation_time={shoot_dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",  # 👈 撮影日時を設定
         str(dst_path),
     ]
 
