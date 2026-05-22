@@ -1,4 +1,3 @@
-import dataclasses
 import json
 import os
 import re
@@ -7,14 +6,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import win32_setctime
+from coordinates import Size
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-
-
-@dataclasses.dataclass
-class Size:
-    width: int
-    height: int
 
 
 def _size_from_ffmpeg(target_path: Path) -> Size | None:
