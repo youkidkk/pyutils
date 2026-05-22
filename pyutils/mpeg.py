@@ -6,9 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import win32_setctime
-from coordinates import Size
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
+
+from pyutils.coordinates import Size
 
 
 def _size_from_ffmpeg(target_path: Path) -> Size | None:
