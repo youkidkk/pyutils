@@ -191,23 +191,35 @@ def compress(
     # FFmpegのコマンドを構築
     command = [
         "ffmpeg",
-        "-y",  # 同名ファイルがあれば上書き
+        # 同名ファイルがあれば上書き
+        "-y",
+        # 入力ファイル
         "-i",
-        str(src_path),  # 入力ファイル
+        str(src_path),
+        # ビデオコーデックに H.265 (HEVC) を指定
         "-c:v",
-        "libx265",  # ビデオコーデックに H.265 (HEVC) を指定
+        "libx265",
+        # 画質モード
         "-crf",
-        str(crf),  # 恒常画質モード（サイズと画質のバランス）
+        str(crf),
+        # スケール
         "-vf",
         scale,
+        # プリセット（エンコード速度に影響）
         "-preset",
-        preset,  # エンコード速度（遅い＝圧縮効率UP）
+        preset,
+        # 音声を汎用性の高いAACに変換
         "-c:a",
-        "aac",  # 音声を汎用性の高いAACに変換
+        "aac",
+        # 音声ビットレート
         "-b:a",
-        "128k",  # 音声ビットレートを128kbpsに抑える
+        "128k",
         "-metadata",
-        f"creation_time={shoot_dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",  # 👈 撮影日時を設定
+        # 撮影日時を設定
+        f"creation_time={
+            # UTC日時を指定
+            shoot_dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        }",
         str(dst_path),
     ]
 
