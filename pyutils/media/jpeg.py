@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 import win32_setctime
 from PIL import ExifTags, Image, UnidentifiedImageError
@@ -17,7 +17,7 @@ tag_id_dtorg = _get_exif_tagid("DateTimeOriginal")
 tag_id_subsec = _get_exif_tagid("SubsecTimeOriginal")
 
 
-def shoot_datetime(target_file: Union[Path, str]) -> Optional[datetime]:
+def shoot_datetime(target_file: Path | str) -> datetime | None:
     """撮影日時を取得"""
     target_path = Path(target_file)
     if not target_path.exists() or not target_path.is_file():
