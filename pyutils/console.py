@@ -77,7 +77,7 @@ class Console:
 
     def confirm(self, text: str, default: bool = False):
         """Y or N の入力"""
-        self.print(f"{text} ({"Y/n" if default else "y/N"}): ", end="")
+        self.print(f"""{text} ({"Y/n" if default else "y/N"}): """, end="")
         choice = input()
         if default:
             return choice.lower() != "n"
