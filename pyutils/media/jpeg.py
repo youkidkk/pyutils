@@ -17,22 +17,33 @@ tag_id_dtorg = _get_exif_tagid("DateTimeOriginal")
 tag_id_subsec = _get_exif_tagid("SubsecTimeOriginal")
 
 
+def _shoot_datetime_from_exif(target: Path) -> datetime | None:
+    try:
+        img = Image.open(target)
+        exif = img.getexif()
+        if not exif:
+            # EXIFが取得できない場合
+            return
+        exif_dict = exif.get_ifd(ExifTags.IFD.Exif)
+        dtorg = exif_dict.get(tag_id_dtorg)
+        if not dtorg:
+            # 撮影日時が取得できない場合
+            return
+        subsec = exif_dict.get(tag_id_subsec) or "000000"
+        return datetime.strptime(dtorg + subsec, "%Y:%m:%d %H:%M:%S%f")
+    except (UnidentifiedImageError, ValueError):
+        return
+
+
 def shoot_datetime(target_file: Path | str) -> datetime | None:
     """撮影日時を取得"""
     target_path = Path(target_file)
     if not target_path.exists() or not target_path.is_file():
-        raise AttributeError(
+        raise ValueError(
             f"対象ファイルが存在しないか、ファイルではない: {target_file}",
         )
-    try:
-        img = Image.open(target_file)
-        exif = img.getexif()
-        exif_dict = exif.get_ifd(ExifTags.IFD.Exif)
-        dtorg = exif_dict.get(tag_id_dtorg, "")
-        subsec = exif_dict.get(tag_id_subsec, "000000")
-        return datetime.strptime(dtorg + subsec, "%Y:%m:%d %H:%M:%S%f")
-    except (UnidentifiedImageError, ValueError):
-        return None
+    if result := _shoot_datetime_from_exif(target_path):
+        return result
 
 
 def compress(
