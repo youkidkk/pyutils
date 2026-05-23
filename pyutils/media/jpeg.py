@@ -24,9 +24,14 @@ tag_id_dtorg = _get_exif_tagid("DateTimeOriginal")
 tag_id_subsec = _get_exif_tagid("SubsecTimeOriginal")
 
 
-def _shoot_datetime_from_exif(target: Path) -> datetime | None:
+def shoot_datetime_from_exif(target_file: Path | str) -> datetime | None:
+    """EXIFから撮影日時を取得"""
+    target_path = Path(target_file)
     try:
-        with Image.open(target) as img:
+        if not target_path.is_file():
+            return None
+
+        with Image.open(target_path) as img:
             exif = img.getexif()
             if not exif:
                 # EXIFが取得できない場合
@@ -45,7 +50,7 @@ def _shoot_datetime_from_exif(target: Path) -> datetime | None:
 
             return datetime.strptime(f"{dtorg}.{subsec}", "%Y:%m:%d %H:%M:%S.%f")
 
-    except (UnidentifiedImageError, ValueError, KeyError):
+    except (UnidentifiedImageError, ValueError, KeyError, OSError):
         return None
 
 
@@ -56,7 +61,7 @@ def shoot_datetime(target_file: Path | str) -> datetime:
         raise ValueError(
             f"対象ファイルが存在しないか、ファイルではない: {target_file}",
         )
-    if result := _shoot_datetime_from_exif(target_path):
+    if result := shoot_datetime_from_exif(target_path):
         # EXIFから撮影日時が取得できた場合 -> その値を返却
         return result
     # 取得できない場合は作成日時または更新日時を返却
@@ -65,29 +70,36 @@ def shoot_datetime(target_file: Path | str) -> datetime:
 
 def compress(
     src_path: Path | str,
-    dst_dir: Path | str,
+    dst_path: Path | str,
     quality: int = quality_default,
 ) -> Path:
     """画像ファイルを指定した圧縮率で圧縮し、タイムスタンプを撮影日時に同期する。"""
-    target_path = Path(src_path)
-    if not target_path.is_file():
+    src = Path(src_path)
+    if not src.is_file():
         raise ValueError(
-            f"対象ファイルが存在しないか、ファイルではない: {src_path}",
+            f"対象ファイルが存在しないか、ファイルではない: {src}",
         )
 
-    dst_path = Path(dst_dir).joinpath(target_path.name)
-    if dst_path.exists():
+    dst = Path(dst_path)
+    if dst.is_dir() or not dst.suffix:
+        # ディレクトリ指定の場合に、ソースファイルのファイル名を引き継ぐ
+        dst = dst.joinpath(src.name)
+    if dst.exists():
         raise ValueError(
-            f"出力先ファイルが存在: {dst_path}",
+            f"出力先ファイルが存在: {dst}",
         )
 
-    dt_timestamp = shoot_datetime(target_path).timestamp()
+    # 出力先フォルダがない場合は自動生成
+    if not dst.parent.exists():
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+    dt_timestamp = shoot_datetime(src).timestamp()
     try:
         with (
-            Image.open(target_path) as img,
-            tempfile.TemporaryDirectory(dir=dst_dir) as tempdir,
+            Image.open(src) as img,
+            tempfile.TemporaryDirectory(dir=dst.parent) as tempdir,
         ):
-            tempdst = Path(tempdir).joinpath(target_path.name)
+            tempdst = Path(tempdir).joinpath(dst.name)
             ext_params = {
                 k: v for k, v in {"exif": img.info.get("exif")}.items() if v is not None
             }
@@ -97,12 +109,12 @@ def compress(
                 quality=quality,
                 **ext_params,
             )
-            tempdst.rename(dst_path)
+            tempdst.rename(dst)
 
         # タイムスタンプの更新
-        win32_setctime.setctime(dst_path, dt_timestamp)
-        os.utime(dst_path, (dt_timestamp, dt_timestamp))
+        win32_setctime.setctime(dst, dt_timestamp)
+        os.utime(dst, (dt_timestamp, dt_timestamp))
 
-        return dst_path
+        return dst
     except Exception:
         raise
