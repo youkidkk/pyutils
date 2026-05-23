@@ -9,7 +9,7 @@ import win32_setctime
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 
-from pyutils.coordinates import Size
+from pyutils.media.constants import Size
 
 
 def _size_from_ffmpeg(target_path: Path) -> Size | None:
