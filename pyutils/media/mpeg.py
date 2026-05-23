@@ -142,6 +142,7 @@ def shoot_datetime_from_meta(target_file: Path | str) -> datetime | None:
             return None
         finally:
             parser.close()
+    return None
 
 
 def shoot_datetime(target_file: Path | str) -> datetime | None:
@@ -178,12 +179,16 @@ def compress(
     crf: int = 28,
     preset: str = "medium",
 ) -> Path | None:
-    """MP4動画を安全かつアトミックに圧縮する"""
+    """MP4動画を圧縮する"""
     src_path = Path(src_file)
     dst_path = Path(dst_file)
 
     if not src_path.is_file():
         return None
+    if dst_path.is_dir():
+        dst_path = dst_path / src_path.name
+    elif dst_path.suffix == "":
+        dst_path = dst_path / src_path.name
     if dst_path.exists():
         return None
 
@@ -195,9 +200,7 @@ def compress(
     if not shoot_dt:
         return None
 
-    # アトミック書き込みのためのTempファイル
     dst_path.parent.mkdir(parents=True, exist_ok=True)
-
     with tempfile.TemporaryDirectory(dir=dst_path.parent) as tmpdir:
         tmp_output_path = Path(tmpdir) / dst_path.name
 
