@@ -64,15 +64,15 @@ def shoot_datetime(target_file: Path | str) -> datetime:
 
 
 def compress(
-    target_file: Path | str,
+    src_path: Path | str,
     dst_dir: Path | str,
     quality: int = quality_default,
 ) -> Path:
     """画像ファイルを指定した圧縮率で圧縮し、タイムスタンプを撮影日時に同期する。"""
-    target_path = Path(target_file)
+    target_path = Path(src_path)
     if not target_path.is_file():
         raise ValueError(
-            f"対象ファイルが存在しないか、ファイルではない: {target_file}",
+            f"対象ファイルが存在しないか、ファイルではない: {src_path}",
         )
 
     dst_path = Path(dst_dir).joinpath(target_path.name)
