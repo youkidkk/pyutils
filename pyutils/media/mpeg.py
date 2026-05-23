@@ -9,6 +9,7 @@ import win32_setctime
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 
+from pyutils import times
 from pyutils.media.constants import Size
 
 
@@ -133,11 +134,7 @@ def shoot_datetime(file: Path | str) -> datetime | None:
                 return
             meta_dt = metadata.get("creation_date")
             if type(meta_dt) is datetime:
-                return (
-                    meta_dt.replace(tzinfo=timezone.utc)
-                    .astimezone()
-                    .replace(tzinfo=None)
-                )
+                return times.local_time_from_utc(meta_dt)
     except Exception:
         return
     finally:
