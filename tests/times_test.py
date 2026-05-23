@@ -84,3 +84,53 @@ def test_local_time_from_utc_with_aware_ny_datetime():
     # 検証: ニューヨークの0時 ＝ 日本時間の13時
     assert result == datetime(2026, 5, 23, 13, 0, 0)
     assert result.tzinfo is None
+
+
+def test_utc_time_from_local_with_naive_datetime():
+    """1. タイムゾーン情報のない(naive)ローカル日時を渡した場合のテスト"""
+    # 入力: 日本時間(JST)のつもりで指定した 2026-05-23 09:00:00
+    input_dt = datetime(2026, 5, 23, 9, 0, 0)
+
+    result = times.utc_time_from_local(input_dt)
+
+    # 検証: UTCの 00:00:00 に引き算され、かつ tzinfo は None であること
+    assert result == datetime(2026, 5, 23, 0, 0, 0)
+    assert result.tzinfo is None
+
+
+def test_utc_time_from_local_with_aware_jst_datetime():
+    """2. すでに明示的に JST タイムゾーンが設定されている(aware)日時を渡した場合のテスト"""
+    # 入力: 日本時間の 2026-05-23 09:00:00+09:00
+    input_dt = datetime(2026, 5, 23, 9, 0, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
+
+    result = times.utc_time_from_local(input_dt)
+
+    # 検証: タイムゾーン情報が付いていても正しく9時間引かれ、tzinfo は None になること
+    assert result == datetime(2026, 5, 23, 0, 0, 0)
+    assert result.tzinfo is None
+
+
+def test_utc_time_from_local_with_aware_utc_datetime():
+    """3. すでに UTC タイムゾーンが設定されている日時を渡した場合のテスト"""
+    # 入力: UTCの 2026-05-23 00:00:00+00:00
+    input_dt = datetime(2026, 5, 23, 0, 0, 0, tzinfo=timezone.utc)
+
+    result = times.utc_time_from_local(input_dt)
+
+    # 検証: 元々UTCなので時間は変わらず 00:00:00 のまま、tzinfo だけが None になること
+    assert result == datetime(2026, 5, 23, 0, 0, 0)
+    assert result.tzinfo is None
+
+
+def test_utc_time_from_local_with_aware_ny_datetime():
+    """4. ニューヨーク時間(EDT: UTC-4)など、別のタイムゾーンの日時を渡した場合のテスト"""
+    # 入力: ニューヨーク夏時間の 2026-05-23 00:00:00-04:00
+    # ニューヨークの「夜の0時」は、UTCに直すと4時間進むので「朝の04:00」になります。
+    ny_zone = ZoneInfo("America/New_York")
+    input_dt = datetime(2026, 5, 23, 0, 0, 0, tzinfo=ny_zone)
+
+    result = times.utc_time_from_local(input_dt)
+
+    # 検証: 正しくUTCの 04:00:00 に変換され、tzinfo が None であること
+    assert result == datetime(2026, 5, 23, 4, 0, 0)
+    assert result.tzinfo is None
