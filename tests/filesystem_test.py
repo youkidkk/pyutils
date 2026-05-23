@@ -1,3 +1,5 @@
+import os
+from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -253,3 +255,84 @@ class TestRemoveEmptyParents:
         fs.remove_empty_parents(self.target, self.root)
         assert self.root.joinpath("test1").exists()
         assert not self.root.joinpath("test1", "test2").exists()
+
+
+@pytest.fixture
+def temp_file(tmp_path: Path) -> Path:
+    """テスト用の空ファイルを一時ディレクトリ内に作成するフィクスチャ"""
+    file = tmp_path / "test_file.txt"
+    file.write_text("dummy content")
+    return file
+
+
+def test_get_older_timestamp_when_ctime_is_older(temp_file: Path):
+    """1. 作成日時(ctime)のほうが更新日時(mtime)より古い場合"""
+    # 疑似的な日時を設定
+    base_time = datetime(2026, 5, 23, 10, 0, 0)
+    ctime_target = base_time - timedelta(hours=1)  # 9:00:00 (古い)
+    mtime_target = base_time  # 10:00:00
+
+    # タイムスタンプをエポック秒に変換してファイルに適用
+    # ※ os.utime は [アクセス日時, 更新日時] を書き換える
+    os.utime(temp_file, (mtime_target.timestamp(), mtime_target.timestamp()))
+
+    # 作成日時の書き換え（Windowsのみ対応。Mac/Linuxでは無視されるが、
+    # 誕生時より後のmtimeに設定しているためロジックは成立します）
+    try:
+        import win32_setctime
+
+        win32_setctime.setctime(str(temp_file), ctime_target.timestamp())
+    except ImportError:
+        pass
+
+    # テスト実行
+    result = fs.get_older_file_timestamp(temp_file)
+
+    # 検証：より古いほうの日時（min）が返ってきているか
+    stat = temp_file.stat()
+    try:
+        expected_ctime = datetime.fromtimestamp(stat.st_birthtime)
+    except AttributeError:
+        expected_ctime = datetime.fromtimestamp(stat.st_ctime)
+
+    expected_mtime = datetime.fromtimestamp(stat.st_mtime)
+
+    assert result == min(expected_ctime, expected_mtime)
+
+
+def test_get_older_timestamp_when_mtime_is_older(temp_file: Path):
+    """2. 更新日時(mtime)のほうが作成日時(ctime)より古い場合（ファイルの書き換えなどをシミュレート）"""
+    # 意図的に更新日時（mtime）を過去に設定
+    past_mtime = datetime(2026, 5, 23, 1, 0, 0)
+    os.utime(temp_file, (past_mtime.timestamp(), past_mtime.timestamp()))
+
+    # テスト実行
+    result = fs.get_older_file_timestamp(temp_file)
+
+    # 検証：作成日時よりも過去に設定したmtimeが選ばれていること
+    assert result == past_mtime
+
+
+def test_accepts_both_str_and_path(temp_file: Path):
+    """3. 引数として Path オブジェクトと文字列(str)の両方を受け付けるかのテスト"""
+    # Pathオブジェクトを渡す
+    result_path = fs.get_older_file_timestamp(temp_file)
+    assert isinstance(result_path, datetime)
+
+    # 文字列パスを渡す
+    result_str = fs.get_older_file_timestamp(str(temp_file))
+    assert isinstance(result_str, datetime)
+
+    assert result_path == result_str
+
+
+def test_raises_file_not_found_error():
+    """4. 存在しないファイルや、ディレクトリが渡されたときに正しくエラーになるか"""
+    # 存在しないパス
+    with pytest.raises(FileNotFoundError):
+        fs.get_older_file_timestamp("non_existent_file.xyz")
+
+    # ファイルではなくディレクトリのパス
+    current_dir = Path(__file__).parent
+    with pytest.raises(FileNotFoundError):
+        fs.get_older_file_timestamp(current_dir)
