@@ -2,6 +2,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +10,7 @@ import win32_setctime
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 
-from pyutils import times
+from pyutils import filesystem, times
 from pyutils.media.constants import Size
 
 
@@ -43,7 +44,7 @@ def _size_from_ffmpeg(target_path: Path) -> Size | None:
                 break
 
         if not video_stream:
-            return None, None
+            return None
 
         width = int(video_stream.get("width", 0))
         height = int(video_stream.get("height", 0))
@@ -86,13 +87,13 @@ def _size_from_ffmpeg(target_path: Path) -> Size | None:
 
         return Size(actual_width, actual_height)
     except Exception:
-        return
+        return None
 
 
 def _size_from_hachoir(target_path: Path) -> Size | None:
     parser = createParser(str(target_path))
     if not parser:
-        return None, None
+        return None
     try:
         metadata = extractMetadata(parser)
         if not metadata:
@@ -103,7 +104,7 @@ def _size_from_hachoir(target_path: Path) -> Size | None:
         height = metadata.get("height") if metadata.has("height") else None
 
         if not width or not height:
-            return
+            return None
         return Size(int(width), int(height))
     except Exception:
         return None
@@ -120,37 +121,51 @@ def size(target_file: Path | str) -> Size | None:
     if result := _size_from_hachoir(target_path):
         return result
 
-    return
+    return None
 
 
-def shoot_datetime(file: Path | str) -> datetime | None:
-    path = Path(file)
-    parser = createParser(str(path))
-    if not parser:
-        return
-    try:
-        if metadata := extractMetadata(parser):
-            if not metadata.has("creation_date"):
-                return
-            meta_dt = metadata.get("creation_date")
-            if type(meta_dt) is datetime:
-                return times.local_time_from_utc(meta_dt)
-    except Exception:
-        return
-    finally:
-        parser.close()
+def shoot_datetime_from_meta(target_file: Path | str) -> datetime | None:
+    """メタデータから撮影日時を取得"""
+    target_path = Path(target_file)
+    if not target_path.is_file():
+        return None
+
+    parser = createParser(str(target_path))
+    if parser:
+        try:
+            if metadata := extractMetadata(parser):
+                if metadata.has("creation_date"):
+                    meta_dt = metadata.get("creation_date")
+                    if isinstance(meta_dt, datetime):
+                        return times.local_time_from_utc(meta_dt)
+        except Exception:
+            return None
+        finally:
+            parser.close()
 
 
-def _output_scale(file: Path, scale=960) -> str | None:
+def shoot_datetime(target_file: Path | str) -> datetime | None:
+    """撮影日時を取得"""
+    target_path = Path(target_file)
+    if not target_path.is_file():
+        raise ValueError(
+            f"対象ファイルが存在しないか、ファイルではない: {target_file}",
+        )
+    if result := shoot_datetime_from_meta(target_path):
+        # EXIFから撮影日時が取得できた場合 -> その値を返却
+        return result
+    # 取得できない場合は作成日時または更新日時を返却
+    return filesystem.get_older_file_timestamp(target_path)
+
+
+def _output_scale(file: Path | str, scale: int = 960) -> str | None:
     size_ = size(file)
     if not size_:
-        return
+        return None
 
     if size_.width > size_.height:
-        # 横長
         return f"scale={scale}:-2"
     elif size_.width < size_.height:
-        # 縦長
         return f"scale=-2:{scale}"
     else:
         return f"scale={scale}:{scale}"
@@ -163,77 +178,75 @@ def compress(
     crf: int = 28,
     preset: str = "medium",
 ) -> Path | None:
-    """
-    MP4動画を圧縮する
-
-    :param src_file: 元ファイル
-    :param dst_file: 圧縮後の保存先ファイル
-    :param crf: 画質と圧縮率のバランス（0〜51）。数値が大きいほど高圧縮。
-                H.265の場合、28前後が「画質を維持しつつ激変する」ベストスポットです。
-    :param preset: 圧縮にかける時間。'slower' や 'veryslow' にするほど、
-                   時間はかかりますが圧縮率は最高になります。
-    """
+    """MP4動画を安全かつアトミックに圧縮する"""
     src_path = Path(src_file)
     dst_path = Path(dst_file)
 
-    if not src_path.exists():
-        return
+    if not src_path.is_file():
+        return None
     if dst_path.exists():
-        return
+        return None
 
-    scale = _output_scale(str(src_path))
-    if not scale:
-        return
+    scale_str = _output_scale(src_path, scale=scale)
+    if not scale_str:
+        return None
+
     shoot_dt = shoot_datetime(src_path)
     if not shoot_dt:
-        return
+        return None
 
-    # FFmpegのコマンドを構築
-    command = [
-        "ffmpeg",
-        # 同名ファイルがあれば上書き
-        "-y",
-        # 入力ファイル
-        "-i",
-        str(src_path),
-        # ビデオコーデックに H.265 (HEVC) を指定
-        "-c:v",
-        "libx265",
-        # 画質モード
-        "-crf",
-        str(crf),
-        # スケール
-        "-vf",
-        scale,
-        # プリセット（エンコード速度に影響）
-        "-preset",
-        preset,
-        # 音声を汎用性の高いAACに変換
-        "-c:a",
-        "aac",
-        # 音声ビットレート
-        "-b:a",
-        "128k",
-        "-metadata",
-        # 撮影日時を設定
-        f"creation_time={
-            # UTC日時を指定
-            shoot_dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-        }",
-        str(dst_path),
-    ]
+    # アトミック書き込みのためのTempファイル
+    dst_path.parent.mkdir(parents=True, exist_ok=True)
 
-    try:
-        # コマンドを実行
-        subprocess.run(
-            command,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            encoding="utf-8",
-        )
-        win32_setctime.setctime(dst_path, shoot_dt.timestamp())
-        os.utime(dst_path, (shoot_dt.timestamp(), shoot_dt.timestamp()))
-        return dst_path
-    except subprocess.CalledProcessError:
-        return
+    with tempfile.TemporaryDirectory(dir=dst_path.parent) as tmpdir:
+        tmp_output_path = Path(tmpdir) / dst_path.name
+
+        command = [
+            "ffmpeg",
+            # 同名ファイルがあれば上書き
+            "-y",
+            # 入力ファイル
+            "-i",
+            str(src_path),
+            # ビデオコーデックに H.265 (HEVC) を指定
+            "-c:v",
+            "libx265",
+            # 画質モード
+            "-crf",
+            str(crf),
+            # スケール
+            "-vf",
+            scale_str,
+            # プリセット（エンコード速度に影響）
+            "-preset",
+            preset,
+            # 音声を汎用性の高いAACに変換
+            "-c:a",
+            "aac",
+            # 音声ビットレート
+            "-b:a",
+            "128k",
+            "-metadata",
+            # 撮影日時を設定
+            f"creation_time={
+                # UTC日時を指定
+                shoot_dt.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+            }",
+            str(tmp_output_path),
+        ]
+
+        try:
+            subprocess.run(
+                command,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+            )
+            tmp_output_path.rename(dst_path)
+
+            win32_setctime.setctime(dst_path, shoot_dt.timestamp())
+            os.utime(dst_path, (shoot_dt.timestamp(), shoot_dt.timestamp()))
+            return dst_path
+        except (subprocess.CalledProcessError, OSError):
+            return None
