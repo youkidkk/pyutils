@@ -1,4 +1,4 @@
-from pyutils.coordinates import Point, Rectangle, Size
+from pyutils.media.coordinates import Point, Rectangle, Size
 
 
 def test_point():

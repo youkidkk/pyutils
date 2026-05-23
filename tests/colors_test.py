@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from pyutils.colors import Color
+from pyutils.media.colors import Color
 
 
 @pytest.mark.parametrize("r,g,b", [(1, 2, 3), (4, 8, 16)])
