@@ -1,7 +1,7 @@
 import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Union
 
 import win32_setctime
 from PIL import ExifTags, Image, UnidentifiedImageError
@@ -64,37 +64,45 @@ def shoot_datetime(target_file: Path | str) -> datetime:
 
 
 def compress(
-    target_file: Union[Path, str],
-    dst_dir: Union[Path, str],
-    quality=quality_default,
+    target_file: Path | str,
+    dst_dir: Path | str,
+    quality: int = quality_default,
 ) -> Path:
-    """画像ファイルを指定した圧縮率で圧縮"""
+    """画像ファイルを指定した圧縮率で圧縮し、タイムスタンプを撮影日時に同期する。"""
     target_path = Path(target_file)
-    if not target_path.exists() or not target_path.is_file():
-        raise AttributeError(
+    if not target_path.is_file():
+        raise ValueError(
             f"対象ファイルが存在しないか、ファイルではない: {target_file}",
         )
 
     dst_path = Path(dst_dir).joinpath(target_path.name)
     if dst_path.exists():
-        raise AttributeError(
-            f"出力先ファイルが存在: {str(dst_path)}",
+        raise ValueError(
+            f"出力先ファイルが存在: {dst_path}",
         )
 
-    with Image.open(target_path) as img:
-        exif = img.info.get("exif")
-        if not exif:
-            raise
-        img.save(
-            dst_path,
-            optimize=True,
-            quality=quality,
-            exif=img.info.get("exif"),
-        )
+    dt_timestamp = shoot_datetime(target_path).timestamp()
+    try:
+        with (
+            Image.open(target_path) as img,
+            tempfile.TemporaryDirectory(dir=dst_dir) as tempdir,
+        ):
+            tempdst = Path(tempdir).joinpath(target_path.name)
+            ext_params = {
+                k: v for k, v in {"exif": img.info.get("exif")}.items() if v is not None
+            }
+            img.save(
+                tempdst,
+                optimize=True,
+                quality=quality,
+                **ext_params,
+            )
+            tempdst.rename(dst_path)
 
-    if shoot_dt := shoot_datetime(str(target_path)):
-        # 撮影日時が存在する場合、作成日時、更新日時を撮影日時で更新
-        win32_setctime.setctime(dst_path, shoot_dt.timestamp())
-        os.utime(dst_path, (shoot_dt.timestamp(), shoot_dt.timestamp()))
+        # タイムスタンプの更新
+        win32_setctime.setctime(dst_path, dt_timestamp)
+        os.utime(dst_path, (dt_timestamp, dt_timestamp))
 
-    return dst_path
+        return dst_path
+    except Exception:
+        raise
