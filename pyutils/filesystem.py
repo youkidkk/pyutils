@@ -6,15 +6,18 @@ from pathlib import Path
 from typing import Callable, Dict, List
 
 
-def _normalize_path(path: str) -> Path:
-    sep = os.path.sep
-    return Path(path.replace("/", sep).replace("\\", sep))
-
-
 class WalkResultType(Enum):
     Absolute = auto()
     FileNameOnly = auto()
     Relative = auto()
+
+
+def _assert_is_directory(target: Path):
+    """対象パスがディレクトリであることをチェックする"""
+    if not target.exists():
+        raise ValueError(f"対象パスが存在しません: {target}")
+    if not target.is_dir():
+        raise ValueError(f"対象パスがディレクトリではありません: {target}")
 
 
 def walk(
@@ -26,23 +29,16 @@ def walk(
 ) -> Dict[Path, List[Path]]:
     """ディレクトリ配下のディレクトリとその配下のファイルの Dict を取得"""
     target = Path(target_dir)
-    if not target.exists() or target.is_file():
-        raise ValueError(f"{target}: Not exist or Not directory")
+    _assert_is_directory(target)
 
-    def conv_dir(dir: str) -> Path:
-        normalized = _normalize_path(dir)
-        return (
-            normalized
-            if result_type != WalkResultType.Absolute
-            else normalized.absolute()
-        )
+    def conv_dir(dir: Path) -> Path:
+        return dir if result_type != WalkResultType.Absolute else dir.absolute()
 
-    def conv_file(filename: str, parent: str) -> Path:
-        parent = _normalize_path(parent)
+    def conv_file(file: Path, parent: str) -> Path:
         return {
-            WalkResultType.Absolute: parent.joinpath(filename).absolute(),
-            WalkResultType.FileNameOnly: Path(filename),
-            WalkResultType.Relative: parent.joinpath(filename),
+            WalkResultType.Absolute: (parent / file).absolute(),
+            WalkResultType.FileNameOnly: Path(file),
+            WalkResultType.Relative: parent / file,
         }[result_type]
 
     return {
@@ -51,7 +47,7 @@ def walk(
             for file in files
             if file_filter(Path(current_dir).joinpath(file))
         ]
-        for current_dir, _, files in os.walk(target)
+        for current_dir, _, files in target.walk()
         if (files or empty_dir) and dir_filter(Path(current_dir))
     }
 
@@ -62,9 +58,8 @@ def walk_files(
     file_filter: Callable[[Path], bool] = lambda _: True,
 ) -> List[Path]:
     """ディレクトリ配下のファイルの List を取得"""
-    target = _normalize_path(str(target_dir))
-    if not target.exists() or target.is_file():
-        raise ValueError(f"{target}: Not exist or Not directory")
+    target = Path(target_dir)
+    _assert_is_directory(target)
 
     def conv_absolute(path: Path):
         return path.absolute() if absolute else path
@@ -81,14 +76,13 @@ def parent_dirs(
     absolute: bool = False,
 ) -> List[Path]:
     """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
-
     target_absolute = Path(target_dir).resolve()
     root_absolute = Path(root_dir).resolve()
     try:
         dirs = [Path(d) for d in target_absolute.relative_to(root_absolute).parts]
         current = Path("")
         result = sorted(
-            [(current := current.joinpath(d)) for d in dirs],  # noqa: F841
+            [(current := current / d) for d in dirs],  # noqa: F841
             reverse=True,
         )
         if absolute:
@@ -112,7 +106,7 @@ def remove_empty_parents(
         current_path = root.joinpath(current)
         if list(current_path.iterdir()):
             return deleted
-        shutil.rmtree(current_path)
+        current_path.rmdir()
         deleted.append(current_path)
     return deleted
 
@@ -138,7 +132,6 @@ def get_older_file_timestamp(file_path: Path | str) -> datetime:
 
     # 更新日時
     mtime = datetime.fromtimestamp(stat.st_mtime)
-
     # 作成日時
     try:
         ctime = datetime.fromtimestamp(stat.st_birthtime)

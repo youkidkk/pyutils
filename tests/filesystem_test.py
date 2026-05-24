@@ -8,21 +8,6 @@ import pytest
 from pyutils import filesystem as fs
 
 
-class TestNormalizePath:
-    @pytest.fixture(
-        params=[
-            "test1/test2/test3",
-            "test1\\test2/test3",
-            "test1/test2\\test3",
-        ]
-    )
-    def pattern(self, request):
-        return fs._normalize_path(request.param)
-
-    def test__normalize_path(self, pattern):
-        assert pattern == Path("test1/test2/test3")
-
-
 def _create_test_files(temp: Path):
     #   test1
     #   test2
