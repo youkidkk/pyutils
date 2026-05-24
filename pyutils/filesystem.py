@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import Callable
 
 
 class WalkResultType(Enum):
@@ -24,8 +24,8 @@ def walk(
     empty_dir: bool = False,
     dir_filter: Callable[[Path], bool] = lambda _: True,
     file_filter: Callable[[Path], bool] = lambda _: True,
-) -> Dict[Path, List[Path]]:
-    """ディレクトリ配下のディレクトリとその配下のファイルの Dict を取得"""
+) -> dict[Path, list[Path]]:
+    """ディレクトリ配下のディレクトリとその配下のファイルの dict を取得"""
     target = Path(target_dir)
     _assert_is_directory(target)
 
@@ -54,8 +54,8 @@ def walk_files(
     target_dir: Path | str,
     absolute: bool = False,
     file_filter: Callable[[Path], bool] = lambda _: True,
-) -> List[Path]:
-    """ディレクトリ配下のファイルの List を取得"""
+) -> list[Path]:
+    """ディレクトリ配下のファイルの list を取得"""
     target = Path(target_dir)
     _assert_is_directory(target)
 
@@ -72,8 +72,8 @@ def parent_dirs(
     target_dir: Path | str,
     root_dir: Path | str,
     absolute: bool = False,
-) -> List[Path]:
-    """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
+) -> list[Path]:
+    """対象ディレクトリからルートディレクトリまでのディレクトリの list を取得"""
     try:
         target_absolute = Path(target_dir).resolve()
         root_absolute = Path(root_dir).resolve()
@@ -94,13 +94,13 @@ def parent_dirs(
 def remove_empty_parents(
     target_dir: Path | str,
     root_dir: Path | str,
-) -> List[Path]:
+) -> list[Path]:
     """対象ディレクトリからルートディレクトリまでの空のディレクトリを削除"""
     target = Path(target_dir)
     if target.is_file():
         return []
     root = Path(root_dir)
-    deleted: List[Path] = []
+    deleted: list[Path] = []
     for current in parent_dirs(target, root):
         current_path = root / current
         if any(current_path.iterdir()):

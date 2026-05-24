@@ -1,9 +1,9 @@
 import threading
 from functools import wraps
-from typing import Any, Callable, Dict, Type
+from typing import Any, Callable, Type
 
 # 型定義をより具体的に
-_instances: Dict[Type, Any] = {}
+_instances: dict[Type, Any] = {}
 # シングルトン生成時の排他制御用ロック
 _singleton_lock = threading.Lock()
 
