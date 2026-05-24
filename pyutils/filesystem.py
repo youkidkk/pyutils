@@ -32,7 +32,7 @@ def walk(
     def conv_dir(dir: Path) -> Path:
         return dir if result_type != WalkResultType.Absolute else dir.absolute()
 
-    def conv_file(file: Path, parent: str) -> Path:
+    def conv_file(file: Path, parent: Path) -> Path:
         return {
             WalkResultType.Absolute: (parent / file).absolute(),
             WalkResultType.FileNameOnly: Path(file),
@@ -43,7 +43,7 @@ def walk(
         conv_dir(current_dir): [
             conv_file(file, current_dir)
             for file in files
-            if file_filter(Path(current_dir).joinpath(file))
+            if file_filter(Path(current_dir) / file)
         ]
         for current_dir, _, files in target.walk()
         if (files or empty_dir) and dir_filter(Path(current_dir))
