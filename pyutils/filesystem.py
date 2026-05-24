@@ -10,7 +10,7 @@ class WalkResultType(Enum):
     Relative = auto()
 
 
-def _assert_is_directory(target: Path):
+def _assert_is_directory(target: Path) -> None:
     """対象パスがディレクトリであることをチェックする"""
     if not target.exists():
         raise ValueError(f"対象パスが存在しません: {target}")
