@@ -129,29 +129,23 @@ def get_older_file_timestamp(file_path: Path | str) -> datetime:
     Raises:
         FileNotFoundError: ファイルが存在しないか、ファイルではない場合。
     """
-    # 1. Pathオブジェクトに変換して一元化
     target_path = Path(file_path)
-
-    # 2. ファイルの存在確認（ディレクトリなどの場合は弾く）
     if not target_path.is_file():
         raise FileNotFoundError(
             f"ファイルが存在しないか、ファイルではありません: {file_path}"
         )
-
-    # 3. ファイルのメタデータ（stat）を取得
     stat = target_path.stat()
 
-    # 4. 更新日時の取得
+    # 更新日時
     mtime = datetime.fromtimestamp(stat.st_mtime)
 
-    # 5. 作成日時の取得（OSによる挙動の違いを安全に吸収）
+    # 作成日時
     try:
         ctime = datetime.fromtimestamp(stat.st_birthtime)
     except AttributeError:
         # st_birthtime がサポートされていない環境（Linuxなど）では st_ctime を代用
         ctime = datetime.fromtimestamp(stat.st_ctime)
 
-    # 6. 2つの日時を比較し、古い方を返却
     return min(ctime, mtime)
 
 
