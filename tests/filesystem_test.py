@@ -218,10 +218,13 @@ def test_parent_dirs():
         Path("test1/test2"),
         Path("test1"),
     ]
+
+
+def test_parent_dirs_absolute_true():
     assert fs.parent_dirs("root/test1/test2/test3", "root", True) == [
-        Path.cwd().joinpath("test1/test2/test3"),
-        Path.cwd().joinpath("test1/test2"),
-        Path.cwd().joinpath("test1"),
+        Path.cwd() / "root" / "test1/test2/test3",
+        Path.cwd() / "root" / "test1/test2",
+        Path.cwd() / "root" / "test1",
     ]
 
 

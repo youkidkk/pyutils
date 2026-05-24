@@ -74,17 +74,18 @@ def parent_dirs(
     absolute: bool = False,
 ) -> List[Path]:
     """対象ディレクトリからルートディレクトリまでのディレクトリの List を取得"""
-    target_absolute = Path(target_dir).resolve()
-    root_absolute = Path(root_dir).resolve()
     try:
-        dirs = [Path(d) for d in target_absolute.relative_to(root_absolute).parts]
-        current = Path("")
-        result = sorted(
-            [(current := current / d) for d in dirs],  # noqa: F841
-            reverse=True,
-        )
-        if absolute:
-            result = [r.absolute() for r in result]
+        target_absolute = Path(target_dir).resolve()
+        root_absolute = Path(root_dir).resolve()
+
+        # 配下関係のバリデーションチェック
+        target_absolute.relative_to(root_absolute)
+
+        result: list[Path] = []
+        for p in [target_absolute] + list(target_absolute.parents):
+            if p == root_absolute:
+                break
+            result.append(p if absolute else p.relative_to(root_absolute))
         return result
     except ValueError:
         return []
