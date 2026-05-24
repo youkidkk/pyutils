@@ -103,9 +103,9 @@ def remove_empty_parents(
     root = Path(root_dir)
     deleted: List[Path] = []
     for current in parent_dirs(target, root):
-        current_path = root.joinpath(current)
-        if list(current_path.iterdir()):
-            return deleted
+        current_path = root / current
+        if any(current_path.iterdir()):
+            break
         current_path.rmdir()
         deleted.append(current_path)
     return deleted
