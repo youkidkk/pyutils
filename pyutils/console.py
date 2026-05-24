@@ -12,7 +12,7 @@ class Console:
         self._indent_width: int = indent_width
         self._top_level = top_level
         self._indent_level: int = init_indent_level
-        self._last_text: int = ""
+        self._last_text: str = ""
 
     def _indent_space(self) -> str:
         """インデントレベルに応じたスペースを返却"""
