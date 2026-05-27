@@ -27,6 +27,14 @@ class EmptyDirectory(ExistingDirectory):
             raise ValueError(f"{value}: 対象ディレクトリが空ではありません。")
 
 
+class EmptyOrNonExistingDirectory(Directory):
+    @classmethod
+    def _validate(cls, value: Path) -> None:
+        super()._validate(value)
+        if value.is_dir() and any(value.iterdir()):
+            raise ValueError(f"{value}: 対象ディレクトリが空ではありません。")
+
+
 class File(Path):
     def __new__(cls, *args, **kwargs):
         return super().__new__(cls, *args, **kwargs)
