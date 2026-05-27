@@ -21,8 +21,8 @@ class ConfigBase:
     def load(cls, config_path: Path = Path("./config.yaml")) -> Self:
         with open(config_path, encoding="utf-8") as config_file:
             config_dict = yaml.safe_load(config_file)
-            return cls(**cls._cast(config_dict))
+            return cls(**cls._convert(config_dict))
 
     @classmethod
-    def _cast(cls, raw_dict: dict) -> dict:
+    def _convert(cls, raw_dict: dict) -> dict:
         return raw_dict
