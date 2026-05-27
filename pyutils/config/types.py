@@ -1,12 +1,9 @@
 from pathlib import Path
 
 
-class Directory:
-    def __init__(self, arg: Path | str):
-        self._value = Path(arg)
-
-    def __getattr__(self, name):
-        return getattr(self._value, name)
+class Directory(Path):
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args, **kwargs)
 
     @classmethod
     def _validate(cls, value: Path) -> None:
@@ -30,12 +27,9 @@ class EmptyDirectory(ExistingDirectory):
             raise ValueError(f"{value}: 対象ディレクトリが空ではありません。")
 
 
-class File:
-    def __init__(self, arg: Path | str):
-        self._value = Path(arg)
-
-    def __getattr__(self, name):
-        return getattr(self._value, name)
+class File(Path):
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args, **kwargs)
 
     @classmethod
     def _validate(cls, value: Path) -> None:
