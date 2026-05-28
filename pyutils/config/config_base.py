@@ -15,9 +15,17 @@ class ConfigBase:
                 field.name,
                 field.type(getattr(self, field.name)),
             )
-            # フィールドのバリデーションを実施
-            if hasattr(field.type, "_validate"):
-                field.type._validate(getattr(self, field.name))
+
+        # フィールドのバリデーションを実施
+        validate_errors = []
+        for field in fields(self.__class__):
+            try:
+                if hasattr(field.type, "_validate"):
+                    field.type._validate(getattr(self, field.name))
+            except ValueError as e:
+                validate_errors.append(f"  {str(e)}")
+        if validate_errors:
+            raise ValueError(f"""項目値が不正です:\n{"\n".join(validate_errors)}""")
 
     @classmethod
     def from_dict(cls, config_dict: dict, source_type="設定") -> Self:
