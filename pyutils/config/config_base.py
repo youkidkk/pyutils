@@ -29,9 +29,14 @@ class ConfigBase:
         Returns:
             Self: 設定クラスのインスタンス。
         """
-        with open(config_path, encoding="utf-8") as config_file:
-            config_dict = yaml.safe_load(config_file)
-            return cls(**cls._convert(config_dict))
+        try:
+            with config_path.open(encoding="utf-8") as config_file:
+                config_dict = yaml.safe_load(config_file)
+                if not config_dict:
+                    raise ValueError(f"設定ファイルの形式が不正です: {config_path}")
+                return cls(**cls._convert(config_dict))
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"設定ファイルが見つかりません: {config_path}")
 
     @classmethod
     def _convert(cls, raw_dict: dict) -> dict:
