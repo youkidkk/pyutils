@@ -9,7 +9,7 @@ import yaml
 class ConfigBase:
     def __post_init__(self) -> None:
         for field in fields(self.__class__):
-            # フィールドに値を設定
+            # フィールド値の型変換
             object.__setattr__(
                 self,
                 field.name,
