@@ -24,7 +24,7 @@ class ConfigBase:
         """設定ファイルを読み込み、インスタンスを返却する。
 
         Args:
-            raw_dict (dict, optional): 設定ファイルのパス。 デフォルト ./config.yaml
+            config_path (dict, optional): 設定ファイルのパス。 デフォルト ./config.yaml
 
         Returns:
             Self: 設定クラスのインスタンス。
