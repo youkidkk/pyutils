@@ -20,7 +20,7 @@ class ConfigBase:
                 field.type._validate(getattr(self, field.name))
 
     @classmethod
-    def load(cls, config_path: Path = Path("./config.yaml")) -> Self:
+    def from_yaml(cls, config_path: Path = Path("./config.yaml")) -> Self:
         """設定ファイルを読み込み、インスタンスを返却する。
 
         Args:
