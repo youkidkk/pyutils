@@ -20,6 +20,17 @@ class ConfigBase:
                 field.type._validate(getattr(self, field.name))
 
     @classmethod
+    def from_dict(cls, config_dict: dict, source_type="設定") -> Self:
+        # 項目の存在チェック
+        non_existing_items = [f.name for f in fields(cls) if f.name not in config_dict]
+        if any(non_existing_items):
+            raise ValueError(
+                f"""{source_type}の項目が不足しています: {", ".join(non_existing_items)}"""
+            )
+
+        return cls(**cls._convert(config_dict))
+
+    @classmethod
     def from_yaml(cls, config_path: Path = Path("./config.yaml")) -> Self:
         """設定ファイルを読み込み、インスタンスを返却する。
 
@@ -35,16 +46,7 @@ class ConfigBase:
                 if not config_dict:
                     raise ValueError(f"設定ファイルの形式が不正です: {config_path}")
 
-                # 項目の存在チェック
-                non_existing_items = [
-                    f.name for f in fields(cls) if f.name not in config_dict
-                ]
-                if any(non_existing_items):
-                    raise ValueError(
-                        f"""設定ファイルの項目が不足しています: {", ".join(non_existing_items)}"""
-                    )
-
-                return cls(**cls._convert(config_dict))
+                return cls.from_dict(config_dict, source_type="設定ファイル")
         except FileNotFoundError as e:
             raise FileNotFoundError(f"設定ファイルが見つかりません: {config_path}")
 
