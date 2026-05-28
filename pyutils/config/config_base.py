@@ -34,6 +34,16 @@ class ConfigBase:
                 config_dict = yaml.safe_load(config_file)
                 if not config_dict:
                     raise ValueError(f"設定ファイルの形式が不正です: {config_path}")
+
+                # 項目の存在チェック
+                non_existing_items = [
+                    f.name for f in fields(cls) if f.name not in config_dict
+                ]
+                if any(non_existing_items):
+                    raise ValueError(
+                        f"""設定ファイルの項目が不足しています: {", ".join(non_existing_items)}"""
+                    )
+
                 return cls(**cls._convert(config_dict))
         except FileNotFoundError as e:
             raise FileNotFoundError(f"設定ファイルが見つかりません: {config_path}")
