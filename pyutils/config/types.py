@@ -11,7 +11,7 @@ class Directory(Path):
     def _validate(cls, value: Path) -> None:
         if value.is_file():
             # ファイルである場合はエラー
-            raise ValueError(f"{value}: 対象パスがファイルとして存在します。")
+            raise ValueError(f"対象パスがファイルとして存在します {value}")
 
 
 class ExistingDirectory(Directory):
@@ -22,7 +22,7 @@ class ExistingDirectory(Directory):
         super()._validate(value)
         if not value.is_dir():
             # ディレクトリとして存在しない場合はエラー
-            raise ValueError(f"{value}: 対象ディレクトリが存在しません。")
+            raise ValueError(f"対象ディレクトリが存在しません {value}")
 
 
 class EmptyDirectory(ExistingDirectory):
@@ -33,7 +33,7 @@ class EmptyDirectory(ExistingDirectory):
         super()._validate(value)
         if any(value.iterdir()):
             # 空のディレクトリではない場合はエラー
-            raise ValueError(f"{value}: 対象ディレクトリが空ではありません。")
+            raise ValueError(f"対象ディレクトリが空ではありません {value}")
 
 
 class EmptyOrNonExistingDirectory(Directory):
@@ -44,7 +44,7 @@ class EmptyOrNonExistingDirectory(Directory):
         super()._validate(value)
         if value.is_dir() and any(value.iterdir()):
             # ディレクトリとして存在し、空ではない場合はエラー
-            raise ValueError(f"{value}: 対象ディレクトリが空ではありません。")
+            raise ValueError(f"対象ディレクトリが空ではありません {value}")
 
 
 class File(Path):
@@ -57,7 +57,7 @@ class File(Path):
     def _validate(cls, value: Path) -> None:
         if value.is_dir():
             # ディレクトリである場合はエラー
-            raise ValueError(f"{value}: 対象パスがディレクトリとして存在します。")
+            raise ValueError(f"対象パスがディレクトリとして存在します {value}")
 
 
 class ExistingFile(File):
@@ -68,4 +68,4 @@ class ExistingFile(File):
         super()._validate(value)
         if not value.is_file():
             # ファイルとして存在しない場合はエラー
-            raise ValueError(f"{value}: 対象ファイルが存在しません。")
+            raise ValueError(f"対象ファイルが存在しません {value}")

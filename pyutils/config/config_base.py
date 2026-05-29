@@ -23,7 +23,7 @@ class ConfigBase:
                 if hasattr(field.type, "_validate"):
                     field.type._validate(getattr(self, field.name))
             except ValueError as e:
-                validate_errors.append(f"  {str(e)}")
+                validate_errors.append(f"  {field.name}: {str(e)}")
         if validate_errors:
             raise ValueError(f"""項目値が不正です:\n{"\n".join(validate_errors)}""")
 
