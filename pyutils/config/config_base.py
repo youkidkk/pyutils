@@ -5,6 +5,12 @@ from typing import Self
 import yaml
 
 
+class ConfigError(ValueError):
+    def __init__(self, message: str, sub_messages: list[str]):
+        super().__init__(message)
+        self.sub_messages = sub_messages
+
+
 @dataclass(frozen=True)
 class ConfigBase:
     def __post_init__(self) -> None:
@@ -23,9 +29,9 @@ class ConfigBase:
                 if hasattr(field.type, "_validate"):
                     field.type._validate(getattr(self, field.name))
             except ValueError as e:
-                validate_errors.append(f"  {field.name}: {str(e)}")
+                validate_errors.append(f"{field.name}: {str(e)}")
         if validate_errors:
-            raise ValueError(f"""項目値が不正です:\n{"\n".join(validate_errors)}""")
+            raise ConfigError("項目値が不正です", validate_errors)
 
     @classmethod
     def from_dict(cls, config_dict: dict, source_type="設定") -> Self:
@@ -35,7 +41,6 @@ class ConfigBase:
             raise ValueError(
                 f"""{source_type}の項目が不足しています: {", ".join(non_existing_items)}"""
             )
-
         return cls(**cls._convert(config_dict))
 
     @classmethod
@@ -53,10 +58,11 @@ class ConfigBase:
                 config_dict = yaml.safe_load(config_file)
                 if not config_dict:
                     raise ValueError(f"設定ファイルの形式が不正です: {config_path}")
-
                 return cls.from_dict(config_dict, source_type="設定ファイル")
         except FileNotFoundError as e:
             raise FileNotFoundError(f"設定ファイルが見つかりません: {config_path}")
+        except ConfigError as e:
+            raise ConfigError(f"{config_path} {str(e)}", e.sub_messages)
 
     @classmethod
     def _convert(cls, raw_dict: dict) -> dict:
