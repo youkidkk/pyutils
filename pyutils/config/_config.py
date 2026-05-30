@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields
+from dataclasses import MISSING, dataclass, fields
 from pathlib import Path
 from typing import Self
 
@@ -42,7 +42,11 @@ class ConfigBase:
     @classmethod
     def from_dict(cls, config_dict: dict, source_type="設定") -> Self:
         # 項目の存在チェック
-        non_existing_items = [f.name for f in fields(cls) if f.name not in config_dict]
+        non_existing_items = [
+            f.name
+            for f in fields(cls)
+            if f.name not in config_dict and f.default is MISSING
+        ]
         if any(non_existing_items):
             raise ValueError(
                 f"""{source_type}の項目が不足しています: {", ".join(non_existing_items)}"""
