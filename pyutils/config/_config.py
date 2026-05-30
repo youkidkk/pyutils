@@ -10,6 +10,12 @@ class ConfigValidateError(ValueError):
         super().__init__(message)
         self.errors = errors
 
+    def __str__(self):
+        err_texts = [f"{key}: {err}" for key, err in self.errors.items()]
+        return (
+            f"""{super().__str__()}\n{"\n".join(["  " + err for err in err_texts])}"""
+        )
+
 
 @dataclass(frozen=True)
 class ConfigBase:
