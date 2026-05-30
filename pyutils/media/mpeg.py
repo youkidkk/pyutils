@@ -153,7 +153,7 @@ def shoot_datetime(target_file: Path | str) -> datetime | None:
             f"対象ファイルが存在しないか、ファイルではない: {target_file}",
         )
     if result := shoot_datetime_from_meta(target_path):
-        # EXIFから撮影日時が取得できた場合 -> その値を返却
+        # メタデータから撮影日時が取得できた場合 -> その値を返却
         return result
     # 取得できない場合は作成日時または更新日時を返却
     return filesystem.get_older_file_timestamp(target_path)
