@@ -63,7 +63,7 @@ class ConfigBase:
             with config_path.open(encoding="utf-8") as config_file:
                 config_dict = yaml.safe_load(config_file)
                 if not config_dict:
-                    raise ValueError(f"設定ファイルの形式が不正です: {config_path}")
+                    raise ValueError(f"設定ファイルの形式が不正です {config_path}")
                 return cls.from_dict(config_dict, source_type="設定ファイル")
         except FileNotFoundError as e:
             raise FileNotFoundError(
@@ -71,7 +71,7 @@ class ConfigBase:
             ) from e
         except ConfigValidateError as e:
             raise ConfigValidateError(
-                f"{config_path} {str(e)}",
+                f"設定ファイルの項目値が不正です {config_path}",
                 e.errors,
             ) from e
 
