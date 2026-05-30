@@ -1,4 +1,4 @@
-from dataclasses import MISSING, dataclass, fields
+from dataclasses import MISSING, dataclass, field, fields
 from pathlib import Path
 from typing import Self
 
@@ -45,7 +45,8 @@ class ConfigBase:
         non_existing_items = [
             f.name
             for f in fields(cls)
-            if f.name not in config_dict and f.default is MISSING
+            if f.name not in config_dict
+            and (f.default is MISSING and f.default_factory is MISSING)
         ]
         if any(non_existing_items):
             raise ValueError(
