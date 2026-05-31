@@ -1,4 +1,4 @@
-from dataclasses import MISSING, dataclass, field, fields
+from dataclasses import MISSING, dataclass, fields
 from pathlib import Path
 from typing import Self
 
@@ -20,6 +20,7 @@ class ConfigValidateError(ValueError):
 @dataclass(frozen=True)
 class ConfigBase:
     def __post_init__(self) -> None:
+        error_items = {}
         for field in fields(self.__class__):
             # フィールド値の型変換
             object.__setattr__(
@@ -28,12 +29,10 @@ class ConfigBase:
                 field.type(getattr(self, field.name)),
             )
 
-        # フィールドのバリデーションを実施
-        error_items = {}
-        for field in fields(self.__class__):
+            # フィールドのバリデーションを実施
             try:
-                if hasattr(field.type, "_validate"):
-                    field.type._validate(getattr(self, field.name))
+                if hasattr(field_value := getattr(self, field.name), "_validate"):
+                    field_value._validate()
             except ValueError as e:
                 error_items[field.name] = str(e)
         if error_items:
