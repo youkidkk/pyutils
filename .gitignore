@@ -1,14 +1,14 @@
-/.venv
-/.mypy_cache
-/tmp/**
-/**/__pycache__
-/**/.ropeproject
-/*.egg-info
-/poetry.lock
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
 
-/build
-/dist
+# Virtual environments
+.venv
+
+# Others
 /*.spec
-/.VSCodeCounter
-
 !/**/.gitkeep
