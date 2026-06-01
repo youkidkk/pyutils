@@ -23,17 +23,14 @@ class ConfigBase:
         error_items = {}
         for field in fields(self.__class__):
             # フィールド値の型変換
-            object.__setattr__(
-                self,
-                field.name,
-                field.type(getattr(self, field.name)),
-            )
-
-            # フィールドのバリデーションを実施
             try:
-                if hasattr(field_value := getattr(self, field.name), "_validate"):
-                    field_value._validate()
+                object.__setattr__(
+                    self,
+                    field.name,
+                    field.type(getattr(self, field.name)),
+                )
             except ValueError as e:
+                # バリデーションエラー
                 error_items[field.name] = str(e)
         if error_items:
             raise ConfigValidateError("項目値が不正です", error_items)
