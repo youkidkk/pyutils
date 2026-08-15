@@ -59,6 +59,11 @@ def max_length(value: str, len_: int) -> bool:
     return len(value) <= len_
 
 
+@rule("{0}桁以上、{1}桁以下で入力してください")
+def length_range(value: str, min: int, max: int) -> bool:
+    return min < len(value) < max
+
+
 # --- バリデーション関数 ---
 
 
