@@ -28,7 +28,7 @@ def rule(err_msg_default: str, interrupt_default: bool = False):
                     return None
 
                 # エラーメッセージの生成
-                err = _str_format(err_msg_tmpl, *args, **kwargs)
+                err = _str_format(err_msg_tmpl, *args, value=value, **kwargs)
 
                 if interrupt:
                     raise InterruptValidation(err)
@@ -39,6 +39,9 @@ def rule(err_msg_default: str, interrupt_default: bool = False):
         return wrapper
 
     return decorator
+
+
+# --- ルール定義 ---
 
 
 @rule("{0}桁で入力してください")
@@ -56,25 +59,34 @@ def max_length(value: str, len_: int) -> bool:
     return len(value) <= len_
 
 
+# --- バリデーション関数 ---
+
+
 def validate(
     value: Any,
-    required=False,
+    required: bool = False,
     expected_type: type = str,
     rules: list[Callable[[Any], str | None]] | None = None,
     required_error_msg: str = "必須入力です",
-    type_error_msg: str = "型エラーです: {}",
+    type_error_msg: str = "型エラーです: {0}",
 ) -> list[str]:
+    # 必須チェック
     if value is None or value == "":
         if required:
             return [required_error_msg]
         else:
             return []
+
+    # 型チェック
     if (expected_type is not bool and isinstance(value, bool)) or not isinstance(
         value, expected_type
     ):
         return [_str_format(type_error_msg, type(value).__name__)]
+
+    # ルール検証
     if not rules:
         return []
+
     errors: list[str] = []
     try:
         for r in rules:
@@ -82,4 +94,5 @@ def validate(
                 errors.append(err)
     except InterruptValidation as e:
         errors.append(str(e))
+
     return errors
