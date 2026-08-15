@@ -52,8 +52,19 @@ def max_length(value: str, len_: int) -> bool:
     return len(value) <= len_
 
 
-def validate(value: Any, *rules: Callable[[Any], str | None]) -> list[str]:
+def validate(
+    value: Any,
+    required=False,
+    rules: list[Callable[[Any], str | None]] | None = None,
+) -> list[str]:
     errors: list[str] = []
+    if value is None or value == "":
+        if required:
+            return ["必須入力です"]
+        else:
+            return errors
+    if not rules:
+        return errors
     try:
         for r in rules:
             if err := r(value):
