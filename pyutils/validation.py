@@ -7,6 +7,13 @@ class InterruptValidation(Exception):
     """バリデーション処理を途中で中断するための例外"""
 
 
+def _str_format(str_tmpl, *args, **kwargs):
+    try:
+        return str_tmpl.format(*args, **kwargs)
+    except (IndexError, KeyError):
+        return str_tmpl
+
+
 def rule(err_msg_default: str, interrupt_default: bool = False):
     """バリデーション関数をルール化するデコレータ"""
 
@@ -21,10 +28,7 @@ def rule(err_msg_default: str, interrupt_default: bool = False):
                     return None
 
                 # エラーメッセージの生成
-                try:
-                    err = err_msg_tmpl.format(*args, **kwargs)
-                except (IndexError, KeyError):
-                    err = err_msg_tmpl
+                err = _str_format(err_msg_tmpl, *args, **kwargs)
 
                 if interrupt:
                     raise InterruptValidation(err)
@@ -60,7 +64,6 @@ def validate(
     required_error_msg: str = "必須入力です",
     type_error_msg: str = "型エラーです: {}",
 ) -> list[str]:
-    errors: list[str] = []
     if value is None or value == "":
         if required:
             return [required_error_msg]
@@ -69,10 +72,7 @@ def validate(
     if (expected_type is not bool and isinstance(value, bool)) or not isinstance(
         value, expected_type
     ):
-        try:
-            return [type_error_msg.format(type(value).__name__)]
-        except (IndexError, KeyError):
-            return [type_error_msg]
+        return [_str_format(type_error_msg, type(value).__name__)]
     if not rules:
         return []
     errors: list[str] = []
