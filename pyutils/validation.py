@@ -22,7 +22,7 @@ def rule(err_msg_default: str, interrupt_default: bool = False):
 
                 # エラーメッセージの生成
                 try:
-                    err = err_msg_tmpl.format(*args, value=value, **kwargs)
+                    err = err_msg_tmpl.format(*args, **kwargs)
                 except (IndexError, KeyError):
                     err = err_msg_tmpl
 
@@ -55,16 +55,27 @@ def max_length(value: str, len_: int) -> bool:
 def validate(
     value: Any,
     required=False,
+    expected_type: type = str,
     rules: list[Callable[[Any], str | None]] | None = None,
+    required_error_msg: str = "必須入力です",
+    type_error_msg: str = "型エラーです: {}",
 ) -> list[str]:
     errors: list[str] = []
     if value is None or value == "":
         if required:
-            return ["必須入力です"]
+            return [required_error_msg]
         else:
-            return errors
+            return []
+    if (expected_type is not bool and isinstance(value, bool)) or not isinstance(
+        value, expected_type
+    ):
+        try:
+            return [type_error_msg.format(type(value).__name__)]
+        except (IndexError, KeyError):
+            return [type_error_msg]
     if not rules:
-        return errors
+        return []
+    errors: list[str] = []
     try:
         for r in rules:
             if err := r(value):
