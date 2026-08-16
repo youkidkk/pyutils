@@ -59,10 +59,13 @@ def test_max_length_rule():
 
 
 def test_length_range_rule():
-    # 2桁より大きく 5桁より小さい (3桁, 4桁がOK)
-    rule_func = length_range(2, 5)
+    # 2桁以上 5桁以下 (3桁, 4桁, 5桁がOK)
+    rule_func = length_range(3, 5)
+    assert rule_func("12") == "3桁以上、5桁以下で入力してください"
     assert rule_func("123") is None
-    assert rule_func("12") == "2桁以上、5桁以下で入力してください"
+    assert rule_func("1234") is None
+    assert rule_func("12345") is None
+    assert rule_func("123456") == "3桁以上、5桁以下で入力してください"
 
 
 def test_rule_custom_err_msg():
